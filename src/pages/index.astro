@@ -5,7 +5,16 @@ import ContextPanels from '../components/ContextPanels.astro';
 import TraceReadout from '../components/TraceReadout.astro';
 import MiniViz from '../components/MiniViz.astro';
 import RootCauseCards from '../components/RootCauseCards.astro';
+import Timeline from '../components/Timeline.astro';
+import Contact from '../components/Contact.astro';
 import { profile, links, practiceAreas, work, workBySlug, workViz } from '../data/site';
+import {
+  principles,
+  education,
+  freelanceRecord,
+  githubAccounts,
+  certifications,
+} from '../data/about';
 
 const [lead, ...rest] = work;
 
@@ -281,23 +290,163 @@ const artifacts = [
     </div>
   </section>
 
-  <section id="trajectory" class="mx-auto max-w-7xl px-4 py-14">
-    <div class="tile tile-glow reveal p-6 sm:p-9">
+  <!-- ===================================================================
+       Trajectory
+  =================================================================== -->
+  <section id="trajectory" class="mx-auto max-w-7xl px-4 py-14" aria-labelledby="traj-heading">
+    <div class="px-1">
       <SectionHeader
+        id="traj-heading"
         eyebrow="Trajectory"
         title="From trading bots in 2020 to production agents in 2026"
-        lede="An interactive timeline — freelance MQL work, a WebSocket crypto bot, clinical ML at CureMD, then four AI products. In progress."
+        lede="Read bottom-up if you want the honest version: this started with MQL strategies for freelance clients while I was still an undergraduate, and the analytical habit came from there before any of the AI did."
       />
+    </div>
+
+    <div class="reveal mt-9">
+      <Timeline />
     </div>
   </section>
 
-  <section id="about" class="mx-auto max-w-7xl px-4 py-14">
-    <div class="tile tile-glow tile-glow-2 reveal p-6 sm:p-9">
+  <!-- ===================================================================
+       About — principles, then credentials
+  =================================================================== -->
+  <section id="about" class="mx-auto max-w-7xl px-4 py-14" aria-labelledby="about-heading">
+    <div class="px-1">
       <SectionHeader
+        id="about-heading"
         eyebrow="About"
         title="How I work"
-        lede="Measure before recommending. Ship the fix with the before and after attached. File the residual risk rather than hide it. In progress."
+        lede="Four habits, each one attached to a decision it produced rather than stated as a value."
       />
+    </div>
+
+    <div class="mt-9 grid gap-4 sm:grid-cols-2">
+      {
+        principles.map((p, i) => (
+          <article
+            class="tile tile-interactive tile-glow reveal flex flex-col p-6"
+            style={`transition-delay:${(i % 2) * 70}ms`}
+          >
+            <h3 class="font-semibold">{p.title}</h3>
+            <p class="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">{p.body}</p>
+            {p.proof && (
+              <a
+                href={`/work/${p.proof}`}
+                class="mt-4 font-mono text-[11px] text-signal transition-opacity hover:opacity-70"
+              >
+                ↳ {workBySlug(p.proof)?.kicker}
+              </a>
+            )}
+          </article>
+        ))
+      }
+    </div>
+
+    <!-- Credentials -->
+    <div class="mt-4 grid gap-4 lg:grid-cols-12">
+      <div class="tile tile-glow reveal p-6 lg:col-span-5">
+        <p class="label label-signal">Education</p>
+        <h3 class="mt-3 font-semibold">{education.degree}</h3>
+        <p class="mt-1 text-sm text-ink-muted">{education.institution}</p>
+        <p class="mt-1 font-mono text-xs text-signal">{education.years}</p>
+        <p class="mt-4 text-sm leading-relaxed text-ink-muted">{education.note}</p>
+      </div>
+
+      <div class="tile reveal p-6 lg:col-span-7">
+        <p class="label">Client record — platform-computed, not self-reported</p>
+        <div class="mt-4 grid gap-5 sm:grid-cols-2">
+          {
+            freelanceRecord.map((f) => (
+              <div>
+                <p class="label label-signal">{f.platform}</p>
+                <p class="figure mt-1.5 text-2xl font-medium">{f.stat}</p>
+                <p class="mt-1.5 text-xs leading-relaxed text-ink-muted">{f.detail}</p>
+              </div>
+            ))
+          }
+        </div>
+        <p class="mt-5 border-t border-white/6 pt-4 text-xs leading-relaxed text-ink-faint">
+          Both records are public and neither is spotless — there is a one-star review on MQL5 and a
+          3.9 on Upwork among the rest. The averages above are the real averages, not the good ones.
+        </p>
+      </div>
+    </div>
+
+    <!-- GitHub + certifications -->
+    <div class="mt-4 grid gap-4 lg:grid-cols-12">
+      <div class="tile reveal p-6 lg:col-span-7">
+        <p class="label">GitHub — two accounts, and why</p>
+        <div class="mt-4 space-y-4">
+          {
+            githubAccounts.map((g) => (
+              <a
+                href={g.url}
+                target="_blank"
+                rel="noopener"
+                class="group block rounded-xl border border-white/6 bg-black/20 p-4 transition-colors hover:border-white/14"
+              >
+                <div class="flex items-baseline justify-between gap-3">
+                  <span class="font-mono text-sm text-ink transition-colors group-hover:text-signal">
+                    {g.handle}
+                  </span>
+                  <span class="label">{g.label}</span>
+                </div>
+                <p class="mt-2 text-xs leading-relaxed text-ink-muted">{g.note}</p>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="tile tile-glow tile-glow-2 reveal p-6 lg:col-span-5">
+        <details class="group">
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-3">
+            <div>
+              <p class="label label-signal">Certifications</p>
+              <p class="mt-1.5 text-sm text-ink">
+                <span class="figure">{certifications.length}</span> completed
+              </p>
+            </div>
+            <span
+              class="font-mono text-xs text-signal transition-transform group-open:rotate-45"
+              aria-hidden="true"
+            >
+              +
+            </span>
+          </summary>
+          <ul class="mt-5 space-y-2.5 border-t border-white/6 pt-5">
+            {
+              certifications.map((c) => (
+                <li class="flex items-baseline justify-between gap-3">
+                  <span class="text-xs leading-snug text-ink-muted">{c.name}</span>
+                  <span class="shrink-0 font-mono text-[10px] text-ink-faint">
+                    {c.issuer} · {c.year}
+                  </span>
+                </li>
+              ))
+            }
+          </ul>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================
+       Contact
+  =================================================================== -->
+  <section id="contact" class="mx-auto max-w-7xl px-4 py-14" aria-labelledby="contact-heading">
+    <div class="px-1">
+      <SectionHeader
+        id="contact-heading"
+        eyebrow="Contact"
+        title="Open to remote AI and LLM roles"
+        lede="Immediate availability. I read everything and reply to anything specific."
+      />
+    </div>
+
+    <div class="reveal mt-9">
+      <Contact />
     </div>
   </section>
 </Base>

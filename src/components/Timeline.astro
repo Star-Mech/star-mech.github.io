@@ -1,0 +1,62 @@
+---
+import { timeline } from '../data/about';
+---
+
+<ol class="relative space-y-3">
+  <!-- The rail -->
+  <div
+    class="absolute top-3 bottom-3 left-[7px] w-px bg-gradient-to-b from-signal/50 via-line-bright to-transparent sm:left-[9px]"
+    aria-hidden="true"
+  >
+  </div>
+
+  {
+    timeline.map((entry) => (
+      <li class="relative pl-8 sm:pl-10">
+        <!-- Node -->
+        <span
+          class={`absolute top-6 left-0 grid size-[15px] place-items-center rounded-full border sm:size-[19px] ${
+            entry.current ? 'border-signal bg-signal/20' : 'border-line-bright bg-surface'
+          }`}
+          aria-hidden="true"
+        >
+          {entry.current && <span class="dot-live" />}
+        </span>
+
+        <div class="tile tile-interactive tile-glow p-5 sm:p-6">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <div>
+              <h3 class="font-semibold">
+                {entry.role}
+                <span class="text-ink-faint"> · </span>
+                <span class="text-ink-muted">{entry.org}</span>
+              </h3>
+            </div>
+            <span class="font-mono text-[11px] whitespace-nowrap text-signal">{entry.period}</span>
+          </div>
+
+          <p class="mt-3 text-sm leading-relaxed text-ink-muted">{entry.body}</p>
+
+          {entry.projects && (
+            <ul class="mt-4 space-y-3 border-l border-line pl-4">
+              {entry.projects.map((p) => (
+                <li>
+                  <p class="text-sm font-medium text-ink">{p.name}</p>
+                  <p class="mt-1 text-sm leading-relaxed text-ink-muted">{p.detail}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {entry.tags && (
+            <p class="mt-4 flex flex-wrap gap-1.5">
+              {entry.tags.map((t) => (
+                <span class="tag">{t}</span>
+              ))}
+            </p>
+          )}
+        </div>
+      </li>
+    ))
+  }
+</ol>

@@ -1,0 +1,123 @@
+---
+import { links, profile } from '../data/site';
+
+const hasForm = links.formspreeId.length > 0;
+const action = `https://formspree.io/f/${links.formspreeId}`;
+---
+
+<div class="grid gap-4 lg:grid-cols-12">
+  <!-- ------------------------------------------------------------------
+       Left: the form, or an honest substitute for it
+  ------------------------------------------------------------------ -->
+  <div class="tile tile-glow p-6 sm:p-8 lg:col-span-7">
+    {
+      hasForm ? (
+        <form action={action} method="POST" class="space-y-4">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="name" class="label">Name</label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                required
+                autocomplete="name"
+                class="mt-2 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-signal-dim focus:outline-none"
+              />
+            </div>
+            <div>
+              <label for="email" class="label">Email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                autocomplete="email"
+                class="mt-2 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-signal-dim focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="message" class="label">Message</label>
+            <textarea
+              id="message"
+              name="message"
+              rows="5"
+              required
+              class="mt-2 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-sm leading-relaxed text-ink placeholder:text-ink-faint focus:border-signal-dim focus:outline-none"
+            />
+          </div>
+
+          <button type="submit" class="btn-primary">Send message →</button>
+
+          <p class="text-xs leading-relaxed text-ink-faint">
+            Goes straight to my inbox. If you would rather not use a form, the address is on the
+            right.
+          </p>
+        </form>
+      ) : (
+        <div>
+          <p class="label label-signal">Get in touch</p>
+          <h3 class="mt-3 text-xl font-semibold">Email is the fastest route</h3>
+          <p class="mt-4 leading-relaxed text-ink-muted">
+            I read everything and reply to anything specific. If you are hiring, the CV below has the
+            figures the case studies leave out, and the paper is the one thing here you can verify
+            without taking my word for it.
+          </p>
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <a href={`mailto:${links.email}`} class="btn-primary">
+              {links.email}
+            </a>
+            <a href={links.cv} class="btn-ghost">CV (PDF)</a>
+          </div>
+        </div>
+      )
+    }
+  </div>
+
+  <!-- ------------------------------------------------------------------
+       Right: direct routes
+  ------------------------------------------------------------------ -->
+  <div class="flex flex-col gap-4 lg:col-span-5">
+    <div class="tile tile-glow tile-glow-2 p-6">
+      <div class="flex items-center gap-2">
+        <span class="dot-live"></span>
+        <p class="label">Availability</p>
+      </div>
+      <p class="mt-3 text-sm leading-relaxed text-ink">{profile.availability}</p>
+      <p class="mt-2 font-mono text-xs text-ink-faint">
+        {profile.location} · {profile.remote}
+      </p>
+    </div>
+
+    <div class="tile flex-1 p-6">
+      <p class="label">Direct</p>
+      <ul class="mt-4 space-y-1">
+        {
+          [
+            { label: 'Email', value: links.email, href: `mailto:${links.email}` },
+            { label: 'LinkedIn', value: 'in/hammad-maqsood', href: links.linkedin },
+            { label: 'GitHub', value: 'Star-Mech', href: links.github },
+            { label: 'arXiv', value: 'first-author paper', href: links.paper },
+            { label: 'npm', value: 'openrpc-mcp-server-updated', href: links.npm },
+          ].map((row) => (
+            <li>
+              <a
+                href={row.href}
+                target={row.href.startsWith('mailto') ? undefined : '_blank'}
+                rel="noopener"
+                class="group flex items-baseline justify-between gap-4 rounded-lg px-2 py-2 transition-colors hover:bg-white/[0.03]"
+              >
+                <span class="label">{row.label}</span>
+                <span class="truncate font-mono text-xs text-ink-muted transition-colors group-hover:text-signal">
+                  {row.value}
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</div>

@@ -33,6 +33,13 @@ export const links = {
   npm: 'https://www.npmjs.com/package/openrpc-mcp-server-updated',
   gensym: 'https://g2mcp.ignitetech.ai',
   cv: '/Hammad-Maqsood-CV.pdf',
+  /**
+   * Formspree form id, e.g. 'xdkogqyz'. Empty until Hammad creates the form
+   * himself — creating accounts on his behalf is not something I do. While it
+   * is empty the contact section renders a mail-based card instead, so nothing
+   * on the page is ever broken or silently swallowing messages.
+   */
+  formspreeId: '',
 } as const;
 
 export const nav = [

@@ -1,0 +1,110 @@
+---
+/**
+ * The hero's right-hand tile: a compact trace readout.
+ *
+ * It is explicitly labelled illustrative. The shape is real — this is what the
+ * three-tool MCP pattern plus the investigation agent actually does, in the
+ * order it does it — but the timings are representative, not a captured trace.
+ * Labelling it that way costs one word and keeps the site honest.
+ */
+
+const rows = [
+  { t: '0.00', op: 'plan', out: 'classify anomaly', tone: 'muted' },
+  { t: '0.42', op: 'rpc_discover', out: '334 methods', tone: 'signal' },
+  { t: '1.10', op: 'rpc_method_detail', out: '1 schema', tone: 'signal' },
+  { t: '1.86', op: 'rpc_call', out: '200 · 43 entries', tone: 'muted' },
+  { t: '2.20', op: 'validate', out: 'retry · args coerced', tone: 'warn' },
+  { t: '2.51', op: 'geoip_lookup', out: '1 attacker IP', tone: 'warn' },
+  { t: '3.04', op: 'answer', out: 'block · priority 1', tone: 'signal' },
+  { t: '3.19', op: 'persist', out: 'insight saved', tone: 'muted' },
+] as const;
+
+const toneClass = {
+  muted: 'text-ink-muted',
+  signal: 'text-signal',
+  warn: 'text-warn',
+} as const;
+---
+
+<div class="tile tile-glow tile-glow-2 flex h-full flex-col overflow-hidden">
+  <!-- Panel chrome -->
+  <div class="flex items-center justify-between border-b border-white/6 px-4 py-3">
+    <div class="flex items-center gap-2">
+      <span class="dot-live"></span>
+      <span class="label">investigation trace</span>
+    </div>
+    <span class="font-mono text-[10px] text-ink-faint">illustrative</span>
+  </div>
+
+  <!-- Trace rows -->
+  <div class="trace flex-1 px-4 py-4">
+    {
+      rows.map((row, i) => (
+        <div
+          class="trace-row grid grid-cols-[3.1rem_1fr] items-baseline gap-2 py-[0.3rem] font-mono text-[11px] leading-relaxed sm:text-xs"
+          style={`--d:${140 + i * 190}ms`}
+        >
+          <span class="text-ink-faint tabular-nums">{row.t}s</span>
+          <span class="flex flex-wrap items-baseline gap-x-2">
+            <span class="text-ink">{row.op}</span>
+            <span class={toneClass[row.tone]}>{row.out}</span>
+          </span>
+        </div>
+      ))
+    }
+  </div>
+
+  <!-- Footer readout: the point of the whole thing -->
+  <div class="border-t border-white/6 px-4 py-3">
+    <div class="flex items-baseline justify-between font-mono text-[11px]">
+      <span class="text-ink-faint">context</span>
+      <span class="text-ink"><span class="text-signal">4.1k</span> / 200k tokens</span>
+    </div>
+    <div class="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/6">
+      <div class="meter-fill h-1 rounded-full bg-signal" style="--w:2%"></div>
+    </div>
+    <p class="mt-2.5 font-mono text-[10px] leading-relaxed text-ink-faint">
+      334 methods reachable · 3 tool definitions resident
+    </p>
+  </div>
+</div>
+
+<style>
+  .trace-row {
+    opacity: 0;
+    transform: translateY(4px);
+    animation: trace-in 420ms cubic-bezier(0.22, 1, 0.36, 1) var(--d) forwards;
+  }
+
+  @keyframes trace-in {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .meter-fill {
+    width: 0;
+    animation: meter-grow 900ms cubic-bezier(0.22, 1, 0.36, 1) 1350ms forwards;
+  }
+
+  @keyframes meter-grow {
+    to {
+      width: var(--w);
+    }
+  }
+
+  /* A visitor who asked for no motion gets the finished state, not a
+     fast-forwarded one. */
+  @media (prefers-reduced-motion: reduce) {
+    .trace-row {
+      opacity: 1;
+      transform: none;
+      animation: none;
+    }
+    .meter-fill {
+      width: var(--w);
+      animation: none;
+    }
+  }
+</style>

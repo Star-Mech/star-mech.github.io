@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import GlowBackdrop from '../components/GlowBackdrop.astro';
 import { profile } from '../data/site';
 
 interface Props {
@@ -18,7 +19,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class="no-js">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -26,31 +27,63 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="theme-color" content="#08090b" />
+    <meta name="theme-color" content="#07080a" />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta name="twitter:card" content="summary_large_image" />
-
     <meta name="author" content={profile.name} />
+
+    <!-- Drop the no-js class before first paint so .reveal can start hidden
+         without ever risking permanently invisible content. -->
+    <script is:inline>
+      document.documentElement.classList.remove('no-js');
+    </script>
   </head>
 
   <body>
     <a
       href="#main"
-      class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded focus:bg-surface focus:px-4 focus:py-2 focus:text-ink"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-surface-2 focus:px-4 focus:py-2 focus:text-ink"
     >
       Skip to content
     </a>
 
+    <GlowBackdrop />
     <Nav />
 
-    <main id="main">
+    <main id="main" class="relative z-0">
       <slot />
     </main>
 
     <Footer />
+
+    <script is:inline>
+      (() => {
+        const targets = document.querySelectorAll('.reveal');
+        if (!targets.length) return;
+
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduced || !('IntersectionObserver' in window)) {
+          targets.forEach((el) => el.classList.add('is-in'));
+          return;
+        }
+
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              entry.target.classList.add('is-in');
+              io.unobserve(entry.target);
+            });
+          },
+          { rootMargin: '0px 0px -12% 0px', threshold: 0.06 }
+        );
+
+        targets.forEach((el) => io.observe(el));
+      })();
+    </script>
   </body>
 </html>

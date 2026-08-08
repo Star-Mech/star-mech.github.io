@@ -1,0 +1,147 @@
+---
+/**
+ * Mini instruments for the work tiles.
+ *
+ * Each case study gets a small readout built from its own result, rather than a
+ * stock image. Every one is plain CSS/SVG — no charting library, no canvas.
+ * Colour is semantic here: fail-red means something failed, teal means the
+ * shipped path. Nothing is coloured for decoration.
+ */
+
+interface Props {
+  kind: 'context' | 'waterfall' | 'race' | 'plot' | 'dots';
+}
+
+const { kind } = Astro.props;
+
+const evalDots = Array.from({ length: 20 }, (_, i) => i);
+const models = [
+  { name: 'XGBoost', width: '86%', champion: true },
+  { name: 'RandomForest', width: '61%', champion: false },
+  { name: 'SVM', width: '38%', champion: false },
+];
+---
+
+{
+  kind === 'context' && (
+    <div class="space-y-3" role="img" aria-label="334 tool schemas overflow the context window; three tools do not">
+      <div>
+        <p class="font-mono text-[10px] text-fail">334 tools · over limit</p>
+        <div class="mt-1.5 flex flex-wrap gap-[3px]">
+          {Array.from({ length: 40 }, (_, i) => (
+            <span
+              class="h-1 w-[7px] rounded-full bg-fail"
+              style={`opacity:${Math.max(0.14, 0.8 - i * 0.017)}`}
+            />
+          ))}
+        </div>
+      </div>
+      <div>
+        <p class="font-mono text-[10px] text-signal">3 tools · flat</p>
+        <div class="mt-1.5 flex gap-[3px]">
+          {[0, 1, 2].map(() => <span class="h-1 w-[7px] rounded-full bg-signal" />)}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+{
+  kind === 'waterfall' && (
+    <div class="space-y-2.5" role="img" aria-label="A failing streaming path went from 92 seconds with no answer to 39.2 seconds complete">
+      <div>
+        <div class="flex items-baseline justify-between font-mono text-[10px]">
+          <span class="text-ink-faint">before</span>
+          <span class="text-fail">~92s · no answer</span>
+        </div>
+        <div class="mt-1 h-1.5 w-full rounded-full bg-fail/60" />
+      </div>
+      <div>
+        <div class="flex items-baseline justify-between font-mono text-[10px]">
+          <span class="text-ink-faint">after</span>
+          <span class="text-signal">39.2s · complete</span>
+        </div>
+        <div class="mt-1 h-1.5 w-[43%] rounded-full bg-signal" />
+      </div>
+      <p class="font-mono text-[10px] text-ink-faint">root cause: a 60s load-balancer idle timeout</p>
+    </div>
+  )
+}
+
+{
+  kind === 'race' && (
+    <div class="space-y-2" role="img" aria-label="Automated champion selection across three candidate models">
+      {models.map((m) => (
+        <div>
+          <div class="flex items-baseline justify-between font-mono text-[10px]">
+            <span class={m.champion ? 'text-ink' : 'text-ink-faint'}>{m.name}</span>
+            {m.champion && <span class="text-signal">champion</span>}
+          </div>
+          <div class="mt-1 h-1.5 w-full rounded-full bg-white/6">
+            <div
+              class={`h-1.5 rounded-full ${m.champion ? 'bg-signal' : 'bg-white/15'}`}
+              style={`width:${m.width}`}
+            />
+          </div>
+        </div>
+      ))}
+      <p class="font-mono text-[10px] text-ink-faint">promoted automatically, with an audit trail</p>
+    </div>
+  )
+}
+
+{
+  kind === 'plot' && (
+    <div role="img" aria-label="The cheaper model cost 74.7% less but lost the blinded quality comparison 60 to 18">
+      <svg viewBox="0 0 300 128" class="w-full" aria-hidden="true">
+        {/* axes */}
+        <line x1="40" y1="12" x2="40" y2="104" stroke="currentColor" class="text-line-bright" stroke-width="0.8" />
+        <line x1="40" y1="104" x2="292" y2="104" stroke="currentColor" class="text-line-bright" stroke-width="0.8" />
+
+        {/* the trade the numbers actually describe */}
+        <line
+          x1="86" y1="78" x2="232" y2="36"
+          stroke="currentColor" class="text-line-bright"
+          stroke-width="0.8" stroke-dasharray="3 3"
+        />
+
+        {/* incumbent — costs more, wins on quality */}
+        <circle cx="238" cy="32" r="4.5" class="fill-signal" />
+        <text x="230" y="22" class="fill-current text-ink font-mono" style="font-size:9px" text-anchor="end">
+          incumbent · won 60
+        </text>
+
+        {/* challenger — 74.7% cheaper, loses */}
+        <circle cx="80" cy="82" r="4.5" class="fill-fail" />
+        <text x="90" y="85" class="fill-current text-ink-muted font-mono" style="font-size:9px">
+          74.7% cheaper · won 18
+        </text>
+
+        <text x="4" y="18" class="fill-current text-ink-faint font-mono" style="font-size:8px">
+          quality
+        </text>
+        <text x="270" y="120" class="fill-current text-ink-faint font-mono" style="font-size:8px">
+          cost
+        </text>
+      </svg>
+      <p class="mt-1 font-mono text-[10px] text-ink-faint">
+        blinded judge, 83 paired questions → NO-GO
+      </p>
+    </div>
+  )
+}
+
+{
+  kind === 'dots' && (
+    <div role="img" aria-label="Nineteen of twenty generated programs ran correctly inside a live instance; one failed">
+      <div class="grid max-w-[264px] grid-cols-10 gap-1.5">
+        {evalDots.map((i) => (
+          <span class={`aspect-square rounded-[2px] ${i === 13 ? 'bg-fail' : 'bg-signal/80'}`} />
+        ))}
+      </div>
+      <p class="mt-3 font-mono text-[10px] text-ink-faint">
+        <span class="text-signal">19</span>/20 generated programs ran correctly in a live instance
+      </p>
+    </div>
+  )
+}

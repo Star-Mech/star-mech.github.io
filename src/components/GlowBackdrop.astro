@@ -1,0 +1,37 @@
+---
+/**
+ * Atmosphere only. Two large, very low-alpha radial washes plus a faint grid.
+ * Fixed and non-interactive, sitting behind everything. No blur filters — a
+ * wide radial gradient costs nothing to composite, a 200px blur does.
+ */
+---
+
+<div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+  <!-- Teal wash, upper left -->
+  <div
+    class="absolute -top-[20%] -left-[10%] h-[70vh] w-[70vw]"
+    style="background: radial-gradient(circle at center, rgb(77 212 200 / 0.09), transparent 68%);"
+  >
+  </div>
+
+  <!-- Violet wash, mid right -->
+  <div
+    class="absolute top-[18%] -right-[15%] h-[65vh] w-[60vw]"
+    style="background: radial-gradient(circle at center, rgb(167 139 250 / 0.08), transparent 68%);"
+  >
+  </div>
+
+  <!-- Faint engineering grid, faded out toward the bottom -->
+  <div
+    class="absolute inset-0"
+    style="
+      background-image:
+        linear-gradient(to right, rgb(255 255 255 / 0.028) 1px, transparent 1px),
+        linear-gradient(to bottom, rgb(255 255 255 / 0.028) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 85%);
+      -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 85%);
+    "
+  >
+  </div>
+</div>

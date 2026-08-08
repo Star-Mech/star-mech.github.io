@@ -165,3 +165,15 @@ export type WorkItem = (typeof work)[number];
 export function workBySlug(slug: string): WorkItem | undefined {
   return work.find((w) => w.slug === slug);
 }
+
+/**
+ * Which mini instrument each case study tile carries. Every one is built from
+ * that project's own result — no stock imagery anywhere on this site.
+ */
+export const workViz: Record<string, 'context' | 'waterfall' | 'race' | 'plot' | 'dots'> = {
+  'mcp-334-to-3': 'context',
+  'appmanager-langgraph': 'waterfall',
+  'radar-mlops': 'race',
+  'the-no-go': 'plot',
+  'gensym-g2-copilot': 'dots',
+};

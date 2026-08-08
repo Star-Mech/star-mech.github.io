@@ -4,6 +4,7 @@ import SectionHeader from '../components/SectionHeader.astro';
 import ContextPanels from '../components/ContextPanels.astro';
 import TraceReadout from '../components/TraceReadout.astro';
 import MiniViz from '../components/MiniViz.astro';
+import RootCauseCards from '../components/RootCauseCards.astro';
 import { profile, links, practiceAreas, work, workBySlug, workViz } from '../data/site';
 
 const [lead, ...rest] = work;
@@ -22,7 +23,7 @@ const artifacts = [
     label: 'Shipped & live',
     title: 'A hosted MCP server in customer hands',
     body:
-      'The Gensym G2 documentation copilot, running as an authenticated product with per-customer keys — 40 tools over 3,400+ pages of manuals.',
+      'The Gensym G2 documentation copilot, running as an authenticated product with per-customer keys and instant revocation — 3 official manuals, 3,408 pages, 3,511 searchable chunks.',
     href: links.gensym,
     cta: 'Visit the product',
   },
@@ -252,13 +253,18 @@ const artifacts = [
   <!-- ===================================================================
        Sections still being written
   =================================================================== -->
-  <section id="root-cause" class="mx-auto max-w-7xl px-4 py-14">
-    <div class="tile tile-glow reveal p-6 sm:p-9">
+  <section id="root-cause" class="mx-auto max-w-7xl px-4 py-14" aria-labelledby="rc-heading">
+    <div class="px-1">
       <SectionHeader
+        id="rc-heading"
         eyebrow="Root cause"
-        title="Six production failures, and how each one was actually found"
-        lede="Symptom, hypothesis, real cause, measured delta — the section almost nobody publishes. In progress."
+        title="Eight production failures, and how each one was actually found"
+        lede="Every one of these had an obvious explanation that was wrong. The obvious explanation is the interesting part — it is what the fix had to survive. Open any card."
       />
+    </div>
+
+    <div class="reveal mt-9">
+      <RootCauseCards />
     </div>
   </section>
 

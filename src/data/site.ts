@@ -31,7 +31,7 @@ export const links = {
   githubWork: 'https://github.com/hammad-starmech',
   paper: 'https://arxiv.org/abs/2603.14876',
   npm: 'https://www.npmjs.com/package/openrpc-mcp-server-updated',
-  gensym: 'https://g3mcp.ignitetech.ai',
+  gensym: 'https://g2mcp.ignitetech.ai',
   cv: '/Hammad-Maqsood-CV.pdf',
 } as const;
 

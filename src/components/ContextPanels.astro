@@ -1,0 +1,109 @@
+---
+/**
+ * The 334 → 3 panel.
+ *
+ * This is the static, no-JavaScript form: correct, legible, and the exact
+ * fallback served under `prefers-reduced-motion`. Phase 3 layers a steppable
+ * React island on top of this same markup and numbers.
+ */
+
+const naiveSchemas = Array.from({ length: 22 }, (_, i) => i);
+
+const steps = [
+  {
+    call: 'rpc_discover',
+    detail: 'Returns method names only — no schemas. A directory, not a manual.',
+  },
+  {
+    call: 'rpc_method_detail',
+    detail: 'Pulls the full schema for the one method the model chose.',
+  },
+  {
+    call: 'rpc_call',
+    detail: 'Invokes it. Context holds three tool definitions, start to finish.',
+  },
+];
+---
+
+<div class="card overflow-hidden p-0">
+  <div class="grid divide-line md:grid-cols-2 md:divide-x">
+    <!-- Left: the naive approach -->
+    <section class="p-6 sm:p-8" aria-labelledby="panel-naive">
+      <p class="label">The obvious approach</p>
+      <h3 id="panel-naive" class="mt-2 text-lg font-semibold">One tool per method</h3>
+
+      <div class="mt-6" role="img" aria-label="Context window meter, overflowing past its limit">
+        <div class="flex items-baseline justify-between">
+          <span class="label">context window</span>
+          <span class="font-mono text-xs text-fail">over limit</span>
+        </div>
+        <div class="relative mt-2 h-2 w-full rounded-full bg-surface-2">
+          <div class="h-2 w-full rounded-full bg-fail/70"></div>
+          <div class="absolute top-[-4px] right-[18%] h-4 w-px bg-ink-faint"></div>
+        </div>
+      </div>
+
+      <div class="mt-5 flex flex-wrap gap-1" aria-hidden="true">
+        {
+          naiveSchemas.map((i) => (
+            <span
+              class="h-1.5 w-6 rounded-full bg-fail"
+              style={`opacity:${Math.max(0.12, 0.75 - i * 0.03)}`}
+            />
+          ))
+        }
+        <span class="ml-1 font-mono text-[11px] text-ink-faint">+312 more</span>
+      </div>
+
+      <p class="mt-6 text-sm leading-relaxed text-ink-muted">
+        All <span class="figure">334</span> schemas sit in context on every single request. The
+        window is spent before the model has reasoned about anything, and tool selection degrades as
+        the list grows.
+      </p>
+    </section>
+
+    <!-- Right: what shipped -->
+    <section class="bg-surface-2/40 p-6 sm:p-8" aria-labelledby="panel-design">
+      <p class="label label-signal">What shipped</p>
+      <h3 id="panel-design" class="mt-2 text-lg font-semibold">
+        Three tools, progressive disclosure
+      </h3>
+
+      <div class="mt-6" role="img" aria-label="Context window meter, nearly empty and flat">
+        <div class="flex items-baseline justify-between">
+          <span class="label">context window</span>
+          <span class="font-mono text-xs text-signal">flat</span>
+        </div>
+        <div class="relative mt-2 h-2 w-full rounded-full bg-surface-2">
+          <div class="h-2 w-[6%] rounded-full bg-signal"></div>
+          <div class="absolute top-[-4px] right-[18%] h-4 w-px bg-ink-faint"></div>
+        </div>
+      </div>
+
+      <ol class="mt-5 space-y-3">
+        {
+          steps.map((step, i) => (
+            <li class="flex gap-3">
+              <span
+                class="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border border-signal-dim font-mono text-[10px] text-signal"
+                aria-hidden="true"
+              >
+                {i + 1}
+              </span>
+              <div>
+                <code class="font-mono text-sm text-ink">{step.call}</code>
+                <p class="text-sm leading-relaxed text-ink-muted">{step.detail}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+
+      <p class="mt-6 text-sm leading-relaxed text-ink-muted">
+        The model asks what exists, then asks about one thing, then acts. Same
+        <span class="figure">334</span> methods reachable — <span class="figure">3</span> tool
+        definitions resident.
+      </p>
+    </section>
+  </div>
+</div>

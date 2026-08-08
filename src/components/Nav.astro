@@ -1,0 +1,51 @@
+---
+import { nav, links } from '../data/site';
+---
+
+<header
+  class="sticky top-0 z-40 border-b border-line/60 bg-canvas/80 backdrop-blur-md"
+>
+  <nav
+    aria-label="Primary"
+    class="mx-auto flex h-14 max-w-5xl items-center justify-between gap-6 px-5"
+  >
+    <a
+      href="/"
+      class="font-mono text-sm font-medium tracking-tight text-ink transition-colors hover:text-signal"
+    >
+      HM<span class="text-signal">.</span>
+    </a>
+
+    <ul class="hidden items-center gap-6 md:flex">
+      {
+        nav.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="text-sm text-ink-muted transition-colors hover:text-ink"
+            >
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="flex items-center gap-4">
+      <a
+        href={links.paper}
+        class="hidden text-sm text-ink-muted transition-colors hover:text-ink sm:inline"
+        target="_blank"
+        rel="noopener"
+      >
+        Paper
+      </a>
+      <a
+        href={links.cv}
+        class="rounded border border-signal-dim px-3 py-1.5 font-mono text-xs tracking-wide text-signal transition-colors hover:border-signal hover:bg-signal-dim/20"
+      >
+        CV
+      </a>
+    </div>
+  </nav>
+</header>

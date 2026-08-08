@@ -1,0 +1,18 @@
+---
+interface Props {
+  eyebrow: string;
+  title: string;
+  lede?: string;
+  id?: string;
+}
+
+const { eyebrow, title, lede, id } = Astro.props;
+---
+
+<div class="max-w-2xl" id={id}>
+  <p class="label label-signal">{eyebrow}</p>
+  <h2 class="mt-3 text-[length:var(--text-section)] font-semibold leading-tight">
+    {title}
+  </h2>
+  {lede && <p class="mt-4 text-lg leading-relaxed text-ink-muted">{lede}</p>}
+</div>

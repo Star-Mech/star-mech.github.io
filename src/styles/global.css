@@ -1,0 +1,175 @@
+@import 'tailwindcss';
+
+/* Inter: the weight axis only, no italic. Its subsets are unicode-range gated,
+   so a browser downloads latin alone. JetBrains: latin subsets explicitly,
+   since the mono is only used for labels and code. */
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource/jetbrains-mono/latin-400.css';
+@import '@fontsource/jetbrains-mono/latin-500.css';
+
+/* ---------------------------------------------------------------------------
+   Design tokens — "engineering instrument"
+   Near-black canvas, off-white ink, one cool signal colour used sparingly.
+   Warn/fail are reserved for semantic states inside the diagrams (e.g. a
+   context window overflowing), never for decoration.
+--------------------------------------------------------------------------- */
+@theme {
+  --color-canvas: #08090b;
+  --color-surface: #101216;
+  --color-surface-2: #16191f;
+  --color-line: #23272f;
+  --color-line-bright: #343a46;
+
+  --color-ink: #e8eaee;
+  --color-ink-muted: #99a1ad;
+  --color-ink-faint: #6a7280;
+
+  --color-signal: #4dd4c8;
+  --color-signal-dim: #1f6b65;
+  --color-warn: #f0b429;
+  --color-fail: #ff6b6b;
+
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  --text-hero: clamp(2.5rem, 7vw, 4.5rem);
+  --text-section: clamp(1.75rem, 3.5vw, 2.5rem);
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv05', 'ss01';
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Faint dot grid — the instrument-panel cue. Static, no motion. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(var(--color-line) 1px, transparent 1px);
+    background-size: 32px 32px;
+    opacity: 0.4;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-signal);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-signal-dim);
+    color: var(--color-ink);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Components
+--------------------------------------------------------------------------- */
+@layer components {
+  /* Small uppercase mono label — used for section eyebrows and data keys */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+  }
+
+  .label-signal {
+    color: var(--color-signal);
+  }
+
+  /* A figure stated in context — the number always sits next to its cause */
+  .figure {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-signal);
+  }
+
+  .card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: 0.5rem;
+    transition:
+      border-color 200ms ease,
+      background-color 200ms ease;
+  }
+
+  .card:hover {
+    border-color: var(--color-line-bright);
+    background-color: var(--color-surface-2);
+  }
+
+  .rule {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      var(--color-line-bright),
+      var(--color-line) 30%,
+      transparent
+    );
+    border: 0;
+  }
+
+  .link-underline {
+    text-decoration: underline;
+    text-decoration-color: var(--color-signal-dim);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
+    transition: text-decoration-color 200ms ease;
+  }
+
+  .link-underline:hover {
+    text-decoration-color: var(--color-signal);
+  }
+
+  /* Horizontal scroll container for anything wider than the viewport */
+  .scroll-x {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+}

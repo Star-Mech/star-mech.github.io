@@ -1,0 +1,53 @@
+---
+import Base from '../../layouts/Base.astro';
+import { work, profile } from '../../data/site';
+
+export function getStaticPaths() {
+  return work.map((item) => ({
+    params: { slug: item.slug },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props;
+---
+
+<Base title={`${item.title} — ${profile.name}`} description={item.summary}>
+  <article class="mx-auto max-w-3xl px-5 pt-16 pb-24">
+    <a
+      href="/#work"
+      class="font-mono text-xs text-ink-muted transition-colors hover:text-signal"
+    >
+      ← all work
+    </a>
+
+    <p class="label mt-8">{item.kicker}</p>
+    <h1 class="mt-3 text-[length:var(--text-section)] font-semibold leading-tight">
+      {item.title}
+    </h1>
+
+    <p class="mt-6 text-lg leading-relaxed text-ink-muted">{item.summary}</p>
+
+    <div class="card mt-8 p-6">
+      <p class="figure text-3xl font-medium">{item.figure}</p>
+      <p class="mt-2 text-sm text-ink-muted">{item.figureNote}</p>
+    </div>
+
+    <p class="mt-8 flex flex-wrap gap-2">
+      {
+        item.tags.map((tag) => (
+          <span class="rounded border border-line px-2 py-0.5 font-mono text-[11px] text-ink-faint">
+            {tag}
+          </span>
+        ))
+      }
+    </p>
+
+    <hr class="rule my-12" />
+
+    <p class="label">Status</p>
+    <p class="mt-2 text-ink-muted">
+      Full case study in progress — scope, what I built, the hard part, and the measured result.
+    </p>
+  </article>
+</Base>

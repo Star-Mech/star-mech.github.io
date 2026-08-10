@@ -2,9 +2,10 @@
 /**
  * The 334 → 3 panel.
  *
- * Static, no-JavaScript form: correct, legible, and the exact fallback served
- * under `prefers-reduced-motion`. Phase 3 layers a steppable island on top of
- * this same markup and numbers.
+ * The server-rendered markup below is the complete, correct end state, and is
+ * also exactly what a no-JavaScript or reduced-motion visitor gets. The inline
+ * script at the bottom only adds the ability to walk the three calls one at a
+ * time — no framework, and no control that exists without behaviour.
  *
  * Note on the schema wall: 334 bars are actually drawn. A representative
  * handful would undersell the problem the architecture exists to solve.
@@ -17,19 +18,26 @@ const steps = [
   {
     call: 'rpc_discover',
     detail: 'Returns method names only — no schemas. A directory, not a manual.',
+    /**
+     * What comes back, shown when this step is active. Deliberately generic —
+     * the evidence does not record specific method names, so none are invented.
+     */
+    returns: '334 method names · no schemas attached',
   },
   {
     call: 'rpc_method_detail',
     detail: 'Pulls the full schema for the one method the model chose.',
+    returns: '1 schema — params, types, required fields',
   },
   {
     call: 'rpc_call',
     detail: 'Invokes it. Context holds three tool definitions, start to finish.',
+    returns: '200 OK — the appliance did the thing',
   },
 ];
 ---
 
-<div class="tile tile-glow overflow-hidden">
+<div class="tile tile-glow overflow-hidden" data-context-panels>
   <div class="grid md:grid-cols-2 md:divide-x md:divide-white/6">
     <!-- ---------------------------------------------------------------
          Left: the obvious approach
@@ -126,21 +134,54 @@ const steps = [
         <ol class="mt-5 space-y-3.5">
           {
             steps.map((step, i) => (
-              <li class="flex gap-3">
+              <li class="flex gap-3" data-step={i}>
                 <span
-                  class="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-signal-dim font-mono text-[10px] text-signal"
+                  class="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-signal-dim font-mono text-[10px] text-signal transition-colors"
+                  data-marker
                   aria-hidden="true"
                 >
                   {i + 1}
                 </span>
-                <div>
+                <div class="min-w-0">
                   <code class="font-mono text-sm text-ink">{step.call}</code>
                   <p class="mt-0.5 text-sm leading-relaxed text-ink-muted">{step.detail}</p>
+                  <p
+                    data-returns
+                    hidden
+                    class="mt-1.5 rounded border border-signal-dim/50 bg-signal/5 px-2 py-1 font-mono text-[11px] leading-relaxed text-signal"
+                  >
+                    ↩ {step.returns}
+                  </p>
                 </div>
               </li>
             ))
           }
         </ol>
+
+        <!-- Controls. Rendered hidden and revealed by the enhancement script, so
+             a no-JS visitor never sees a dead button. -->
+        <div data-controls hidden class="mt-5 flex flex-wrap items-center gap-2">
+          <span class="label">walk it</span>
+          {
+            steps.map((step, i) => (
+              <button
+                type="button"
+                data-goto={i}
+                class="rounded-md border border-white/10 px-3 py-2 font-mono text-[11px] text-ink-muted transition-colors hover:border-signal-dim hover:text-ink aria-pressed:border-signal aria-pressed:bg-signal/10 aria-pressed:text-signal"
+                aria-pressed="false"
+              >
+                {i + 1}. {step.call}
+              </button>
+            ))
+          }
+          <button
+            type="button"
+            data-reset
+            class="rounded-md px-3 py-2 font-mono text-[11px] text-ink-faint transition-colors hover:text-ink"
+          >
+            reset
+          </button>
+        </div>
       </div>
 
       <p class="mt-6 text-sm leading-relaxed text-ink-muted">
@@ -156,3 +197,58 @@ const steps = [
     </section>
   </div>
 </div>
+
+<script is:inline>
+  /**
+   * Progressive enhancement for the 334 → 3 panel.
+   *
+   * The markup above already renders the complete, correct end state. This only
+   * adds the ability to walk the three calls one at a time. If the script never
+   * runs, or the visitor asked for reduced motion, the controls stay hidden and
+   * the panel reads exactly as it did before — there is no state in which a
+   * control exists but does nothing.
+   */
+  (() => {
+    const root = document.querySelector('[data-context-panels]');
+    if (!root) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const controls = root.querySelector('[data-controls]');
+    const stepEls = Array.from(root.querySelectorAll('[data-step]'));
+    const buttons = Array.from(root.querySelectorAll('[data-goto]'));
+    const resetBtn = root.querySelector('[data-reset]');
+    if (!controls || !stepEls.length) return;
+
+    function render(active) {
+      stepEls.forEach((el, i) => {
+        const on = active !== null && i <= active;
+        const isCurrent = i === active;
+
+        el.style.opacity = active === null || on ? '1' : '0.4';
+
+        const marker = el.querySelector('[data-marker]');
+        if (marker) {
+          marker.classList.toggle('bg-signal', isCurrent);
+          marker.classList.toggle('text-canvas', isCurrent);
+          marker.classList.toggle('text-signal', !isCurrent);
+        }
+
+        const returns = el.querySelector('[data-returns]');
+        if (returns) returns.hidden = !on;
+      });
+
+      buttons.forEach((b, i) =>
+        b.setAttribute('aria-pressed', String(i === active))
+      );
+    }
+
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => render(Number(b.dataset.goto)))
+    );
+    resetBtn?.addEventListener('click', () => render(null));
+
+    controls.hidden = false;
+    render(null);
+  })();
+</script>

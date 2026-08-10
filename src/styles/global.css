@@ -22,7 +22,11 @@
 
   --color-ink: #eceef2;
   --color-ink-muted: #9ba3af;
-  --color-ink-faint: #6d7580;
+  /* Raised from #6d7580, which measured 3.70:1 against the tile surface and so
+     failed WCAG AA for normal text — and it is used almost entirely for .label
+     and .tag at 11px, which is normal text. This value measures 5.21:1 on the
+     same surface. Verified numerically, not by eye. */
+  --color-ink-faint: #868e9a;
 
   --color-signal: #4dd4c8;
   --color-signal-bright: #6ee9dc;

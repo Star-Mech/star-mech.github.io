@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import MiniViz from '../../components/MiniViz.astro';
+import RadarDiagram from '../../components/RadarDiagram.astro';
 import { work, workViz, profile } from '../../data/site';
 import { caseStudyBySlug } from '../../data/case-studies';
 
@@ -62,6 +63,12 @@ function code(text: string): string {
         </div>
       </div>
     </header>
+
+    {item.slug === 'radar-mlops' && (
+      <div class="reveal mt-4">
+        <RadarDiagram />
+      </div>
+    )}
 
     {
       study && (

@@ -1,0 +1,127 @@
+<!doctype html>
+<!--
+  Source for public/og.png. Rendered at exactly 1200×630 with:
+
+    chrome --headless=new --disable-gpu --hide-scrollbars \
+      --screenshot=public/og.png --window-size=1200,630 assets/og.html
+
+  Deliberately self-contained: no build step, no font downloads, no dependency.
+  System fonts only, because a webfont that fails to load in headless Chrome
+  produces a silently wrong image.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1200px; height: 630px; }
+      body {
+        background: #07080a;
+        color: #eceef2;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 72px 80px;
+      }
+      /* the two washes, same hues as the site */
+      .wash-a, .wash-b { position: absolute; border-radius: 50%; }
+      .wash-a {
+        width: 900px; height: 900px; top: -420px; left: -260px;
+        background: radial-gradient(circle, rgba(77,212,200,0.16), transparent 66%);
+      }
+      .wash-b {
+        width: 800px; height: 800px; top: 120px; right: -300px;
+        background: radial-gradient(circle, rgba(167,139,250,0.15), transparent 66%);
+      }
+      .grid {
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 56px 56px;
+        -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 78%);
+      }
+      .content { position: relative; }
+
+      .eyebrow {
+        font-family: 'Consolas', 'SF Mono', monospace;
+        font-size: 19px; letter-spacing: 0.14em; text-transform: uppercase;
+        color: #4dd4c8;
+      }
+      h1 {
+        margin-top: 26px;
+        font-size: 66px; line-height: 1.07; font-weight: 700; letter-spacing: -0.028em;
+        max-width: 940px;
+      }
+      .grad {
+        background-image: linear-gradient(100deg, #6ee9dc, #a78bfa 92%);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      .dim { color: #868e9a; }
+      .sub {
+        margin-top: 30px; font-size: 25px; line-height: 1.45; color: #9ba3af; max-width: 820px;
+      }
+
+      /* the artifact strip: 334 bars vs 3 */
+      .strip { position: relative; display: flex; align-items: flex-end; gap: 54px; }
+      .stat .k {
+        font-family: 'Consolas', 'SF Mono', monospace;
+        font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase; color: #868e9a;
+      }
+      .bars { display: flex; flex-wrap: wrap; gap: 3px; width: 430px; margin-top: 12px; }
+      .bars span { width: 7px; height: 6px; border-radius: 1px; background: #ff6b6b; }
+      .three { display: flex; gap: 3px; margin-top: 12px; }
+      .three span { width: 7px; height: 6px; border-radius: 1px; background: #4dd4c8; }
+      .name {
+        font-family: 'Consolas', 'SF Mono', monospace; font-size: 20px; color: #eceef2;
+        text-align: right;
+      }
+      .name .u { color: #868e9a; font-size: 17px; }
+    </style>
+  </head>
+  <body>
+    <div class="wash-a"></div>
+    <div class="wash-b"></div>
+    <div class="grid"></div>
+
+    <div class="content">
+      <p class="eyebrow">AI / LLM Engineer</p>
+      <h1>
+        I build <span class="grad">production LLM agents</span>, MCP interfaces,
+        and the <span class="dim">MLOps underneath them.</span>
+      </h1>
+      <p class="sub">
+        Four AI products shipped. A first-author clinical-ML paper. And the time I measured a
+        74.7% cost saving and recommended against it.
+      </p>
+    </div>
+
+    <div class="strip">
+      <div class="stat">
+        <div class="k">334 tool schemas · over limit</div>
+        <div class="bars" id="bars"></div>
+      </div>
+      <div class="stat">
+        <div class="k" style="color:#4dd4c8">3 tools · flat</div>
+        <div class="three"><span></span><span></span><span></span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div class="name">
+        Hammad Maqsood<br />
+        <span class="u">star-mech.github.io</span>
+      </div>
+    </div>
+
+    <script>
+      const b = document.getElementById('bars');
+      for (let i = 0; i < 116; i++) {
+        const s = document.createElement('span');
+        s.style.opacity = Math.max(0.12, 0.8 - i * 0.006);
+        b.appendChild(s);
+      }
+    </script>
+  </body>
+</html>

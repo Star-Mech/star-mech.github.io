@@ -16,6 +16,8 @@ const {
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site);
+/** Absolute, as Open Graph requires — a relative path silently fails to unfurl. */
+const ogImage = new URL('/og.png', Astro.site);
 ---
 
 <!doctype html>
@@ -33,7 +35,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content={profile.name} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
     <meta name="author" content={profile.name} />
 
     <!-- Drop the no-js class before first paint so .reveal can start hidden

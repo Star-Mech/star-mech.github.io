@@ -298,9 +298,13 @@ names render server-side, and that the diagram's overview panel is in the HTML w
 
 ## Open items
 
-- `links.formspreeId` is empty — Hammad creates the form, then it drops in.
-- Add the live URL to LinkedIn Featured and the profile website field.
+- `links.formspreeId` is empty. Hammad creates the form, then it drops in.
+- Still to do on LinkedIn: add the live URL to the Featured section. The profile website field is
+  done (2026-08-11, typed as Portfolio).
+- The CV PDF still contains em dashes. The site no longer does, so regenerating it from
+  `F:\JobSearch` would bring the download in line with the page.
 - Known and deferred by his decision: the CV template renders a LinkedIn URL that extracts as a dead
   link, and drops hyphens from compounds like "LLM-as-judge".
+- Resolved 2026-08-11: LinkedIn location now reads Islamabad, so it no longer contradicts the site.
 - Resolved 2026-08-10: his LinkedIn Medlabs entry now matches the paper's 593,055-patient figure, so
   the profile and the site no longer contradict each other.

@@ -24,8 +24,6 @@ export interface CaseStudy {
   hardPart: { heading: string; body: string };
   results: { figure: string; label: string }[];
   stack: { group: string; items: string[] }[];
-  /** Stated where the evidence stops short of a measured before/after. */
-  caveat?: string;
 }
 
 export const caseStudies: CaseStudy[] = [
@@ -74,8 +72,6 @@ export const caseStudies: CaseStudy[] = [
       { group: 'Auth & infra', items: ['OIDC', 'token-redacted logging', 'live appliance validation'] },
       { group: 'Clients', items: ['Claude Desktop', 'Cursor', 'LibreChat'] },
     ],
-    caveat:
-      'The npm package has no published download or adoption figures, so its reach is not claimed, only that it exists, is public, and unblocked current clients.',
   },
 
   // =======================================================================
@@ -198,7 +194,7 @@ export const caseStudies: CaseStudy[] = [
   {
     slug: 'the-no-go',
     scope:
-      'Two questions the business needed answered with evidence rather than opinion: what does a query actually cost, and can a cheaper model replace the incumbent without the answers getting worse. The second question is the one people skip.',
+      'Two questions the business needed answered with evidence rather than opinion: what does a query actually cost, and can a cheaper model replace the incumbent without the answers getting worse. The second question is the one people skip. Costs appear here as ratios rather than dollar amounts, because the absolute numbers belong to the employer.',
     blocks: [
       {
         heading: 'Establishing the baseline',
@@ -242,8 +238,6 @@ export const caseStudies: CaseStudy[] = [
       { group: 'Providers', items: ['Anthropic', 'OpenAI', 'Google', 'AWS Bedrock'] },
       { group: 'Tooling', items: ['Python', 'reusable in-repo CLI'] },
     ],
-    caveat:
-      'Absolute cost-per-query figures are deliberately absent from this page. The percentages are the transferable part; the dollar amounts belong to the employer.',
   },
 
   // =======================================================================
@@ -306,7 +300,7 @@ export const caseStudies: CaseStudy[] = [
   {
     slug: 'smart-eob',
     scope:
-      'SMART EOB reads explanation-of-benefits documents and posts the claims inside them. Posting was manual, and a large share of incoming claims had already been posted, so reviewers spent their time confirming work that was already finished. I was the only engineer on it, from the OCR pipeline through to the admin screens and the production deployment.',
+      'SMART EOB reads explanation-of-benefits documents and posts the claims inside them. Posting was manual, and a large share of incoming claims had already been posted, so reviewers spent their time confirming work that was already finished. I was the only engineer on it, from the OCR pipeline through to the admin screens and the production deployment. The figures here are self-reported: this work predates the evidence trail behind the rest of the site, and the systems are internal.',
     blocks: [
       {
         heading: 'Reading every document twice',
@@ -353,8 +347,6 @@ export const caseStudies: CaseStudy[] = [
       { group: 'Application', items: ['Python', 'Django', 'Django admin', 'Microsoft SQL Server'] },
       { group: 'Deployment', items: ['Linux service', 'Nginx', 'Gunicorn', 'FastAPI (OCR service)'] },
     ],
-    caveat:
-      'Every figure on this page is self-reported. This work predates the evidence trail behind the rest of the site, and the systems are internal, so there is no public artefact and nothing here was independently re-measured. The architecture is described exactly as built; the numbers are mine.',
   },
 
   // =======================================================================
@@ -405,8 +397,6 @@ export const caseStudies: CaseStudy[] = [
       { group: 'Clinical layer', items: ['rule-based expert system', '59 conditions', 'ICD-10 coding'] },
       { group: 'Explainability & serving', items: ['SHAP', 'Flask clinical-validation app'] },
     ],
-    caveat:
-      'What this page does not claim is a deployed clinical product. The system was clinically validated and served through a validation application, not rolled out as a live service that physicians used in practice. The results quoted are the paper’s own, and the paper reports them in full.',
   },
 ];
 

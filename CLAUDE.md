@@ -82,9 +82,13 @@ Violating one is worse than shipping nothing.
 
 **Always:**
 
-- **State what the evidence does not support.** Two case studies carry a "what this page does not
-  claim" panel, and one root-cause card says outright that no before/after was measured. This costs
-  nothing and is the site's whole credibility posture.
+- **State what the evidence does not support**, but as a plain fact in the prose, not as a
+  disclaimer panel. The "what this page does not claim" panels were removed on 2026-08-11: negating
+  a claim the page never made just draws attention to it. What survives is the load-bearing half,
+  stated positively where the reader meets it. SMART EOB's scope says its figures are self-reported;
+  the NO-GO's scope says costs appear as ratios because the dollar amounts belong to the employer;
+  a root-cause card says outright that no before/after was measured. Keep writing that kind of
+  sentence. Do not reintroduce the panel.
 - **Attach every number to its cause.** Hammad rejected a standalone metrics strip; figures live
   beside the thing that produced them.
 - **Attach every skill to its proof.** No skill appears detached from the system it was used on.
@@ -141,7 +145,7 @@ one edit in one place.
 | File | Holds |
 |---|---|
 | `site.ts` | Profile, links, nav, six practice areas, the seven work items, `workViz` mapping |
-| `case-studies.ts` | Case-study bodies: `scope`, `blocks[]`, `hardPart`, `results[]`, `stack[]`, optional `caveat` |
+| `case-studies.ts` | Case-study bodies: `scope`, `blocks[]`, `hardPart`, `results[]`, `stack[]` |
 | `root-causes.ts` | The eight production failures: `symptom`, `looked_like`, `cause`, `fix`, `delta` |
 | `about.ts` | Principles, education, freelance record, GitHub accounts, 18 certifications, the timeline |
 
@@ -162,7 +166,7 @@ Defined once in `src/styles/global.css` under `@theme`. Register: **dark "engine
 near-black canvas, two low-alpha radial washes, a ~1 KB inline-SVG film grain, raised-glass tiles.
 
 Key classes: `.tile` (+ `.tile-glow`, `.tile-glow-2`, `.tile-interactive`), `.label`, `.figure`,
-`.pill`, `.tag`, `.btn-primary`, `.btn-ghost`, `.grad-text`, `.reveal`.
+`.pill`, `.tag`, `.btn-primary`, `.btn-ghost`, `.grad-text`.
 
 **Colour is semantic, not decorative:**
 
@@ -194,8 +198,11 @@ Both interactive pieces — the 334→3 stepper in `ContextPanels.astro` and the
 2. **Enhance with an `is:inline` script.** No islands, no framework.
 3. **Never ship a dead control.** Controls are rendered `hidden` and revealed by the script, so a
    no-JS visitor never sees a button that does nothing.
-4. **Bail out under `prefers-reduced-motion`** leaving the full static content, and make sure
-   `.reveal` content can never be left invisible (there is a `.no-js` guard for exactly this).
+4. **Bail out under `prefers-reduced-motion`** leaving the full static content. Nothing on this
+   site may start invisible and wait for script or scroll: the scroll-reveal animation was removed
+   on 2026-08-11 because content below the fold read as unloaded. The one entrance animation left
+   is the hero trace readout, and it is pure CSS with `forwards` fill, so it always settles visible
+   whether or not it is scrolled to.
 5. **Interactivity must carry information.** Every interactive element has to teach a fact a
    paragraph could not. This is why the stepper reveals *what each call returns* rather than
    animating a meter — the meter's truth is that it stays flat, so animating it meant inventing a

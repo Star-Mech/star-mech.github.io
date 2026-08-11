@@ -21,7 +21,7 @@ const ogImage = new URL('/og.png', Astro.site);
 ---
 
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -45,11 +45,6 @@ const ogImage = new URL('/og.png', Astro.site);
     <meta name="twitter:description" content={description} />
     <meta name="author" content={profile.name} />
 
-    <!-- Drop the no-js class before first paint so .reveal can start hidden
-         without ever risking permanently invisible content. -->
-    <script is:inline>
-      document.documentElement.classList.remove('no-js');
-    </script>
   </head>
 
   <body>
@@ -68,31 +63,5 @@ const ogImage = new URL('/og.png', Astro.site);
     </main>
 
     <Footer />
-
-    <script is:inline>
-      (() => {
-        const targets = document.querySelectorAll('.reveal');
-        if (!targets.length) return;
-
-        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (reduced || !('IntersectionObserver' in window)) {
-          targets.forEach((el) => el.classList.add('is-in'));
-          return;
-        }
-
-        const io = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (!entry.isIntersecting) return;
-              entry.target.classList.add('is-in');
-              io.unobserve(entry.target);
-            });
-          },
-          { rootMargin: '0px 0px -12% 0px', threshold: 0.06 }
-        );
-
-        targets.forEach((el) => io.observe(el));
-      })();
-    </script>
   </body>
 </html>

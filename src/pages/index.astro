@@ -18,6 +18,22 @@ import {
 
 const [lead, ...rest] = work;
 
+/**
+ * Certifications, bucketed by what each one is evidence of rather than by who
+ * issued it. Order is fixed here so the LLM and agent work reads first, which
+ * is what the site is arguing; within a bucket the source order (newest first)
+ * is preserved.
+ */
+const CERT_GROUP_ORDER = [
+  'LLM & agent engineering',
+  'Machine learning foundations',
+  'Software engineering',
+] as const;
+
+const certGroups = CERT_GROUP_ORDER.map(
+  (group) => [group, certifications.filter((c) => c.group === group)] as const
+).filter(([, items]) => items.length > 0);
+
 /** The three things a stranger can verify without taking his word for it. */
 const artifacts = [
   {
@@ -100,10 +116,9 @@ const artifacts = [
             href={a.href}
             target="_blank"
             rel="noopener"
-            class={`tile tile-interactive reveal group flex flex-col p-6 ${
+            class={`tile tile-interactive group flex flex-col p-6 ${
               i === 1 ? 'tile-glow tile-glow-2' : 'tile-glow'
             }`}
-            style={`transition-delay:${i * 70}ms`}
           >
             <p class="label label-signal">{a.label}</p>
             <h3 class="mt-2.5 font-semibold leading-snug">{a.title}</h3>
@@ -137,7 +152,7 @@ const artifacts = [
       </a>
     </div>
 
-    <div class="reveal">
+    <div>
       <ContextPanels />
     </div>
   </section>
@@ -159,8 +174,7 @@ const artifacts = [
       {
         practiceAreas.map((area, i) => (
           <article
-            class="tile tile-interactive tile-glow reveal flex flex-col p-6"
-            style={`transition-delay:${(i % 3) * 70}ms`}
+            class="tile tile-interactive tile-glow flex flex-col p-6"
           >
             <h3 class="font-semibold">{area.title}</h3>
             <p class="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">{area.blurb}</p>
@@ -196,7 +210,7 @@ const artifacts = [
     <!-- Feature -->
     <a
       href={`/work/${lead.slug}`}
-      class="tile tile-interactive tile-glow reveal group mt-9 grid gap-6 p-6 sm:p-8 lg:grid-cols-12"
+      class="tile tile-interactive tile-glow group mt-9 grid gap-6 p-6 sm:p-8 lg:grid-cols-12"
     >
       <div class="lg:col-span-7">
         <p class="label">01 · {lead.kicker}</p>
@@ -224,10 +238,9 @@ const artifacts = [
         rest.map((item, i) => (
           <a
             href={`/work/${item.slug}`}
-            class={`tile tile-interactive reveal group flex flex-col p-6 sm:p-7 ${
+            class={`tile tile-interactive group flex flex-col p-6 sm:p-7 ${
               i % 2 === 0 ? 'tile-glow' : 'tile-glow tile-glow-2'
             }`}
-            style={`transition-delay:${(i % 2) * 70}ms`}
           >
             <div class="flex items-start justify-between gap-4">
               <div>
@@ -269,13 +282,13 @@ const artifacts = [
       />
     </div>
 
-    <div class="reveal mt-9">
+    <div class="mt-9">
       <RootCauseCards />
     </div>
   </section>
 
   <section id="research" class="mx-auto max-w-7xl px-4 py-14">
-    <div class="tile tile-glow tile-glow-2 reveal p-6 sm:p-9">
+    <div class="tile tile-glow tile-glow-2 p-6 sm:p-9">
       <SectionHeader
         eyebrow="Research"
         title="A hybrid rule-base and ML decision-support system, on real-world evidence"
@@ -300,7 +313,7 @@ const artifacts = [
       />
     </div>
 
-    <div class="reveal mt-9">
+    <div class="mt-9">
       <Timeline />
     </div>
   </section>
@@ -322,8 +335,7 @@ const artifacts = [
       {
         principles.map((p, i) => (
           <article
-            class="tile tile-interactive tile-glow reveal flex flex-col p-6"
-            style={`transition-delay:${(i % 2) * 70}ms`}
+            class="tile tile-interactive tile-glow flex flex-col p-6"
           >
             <h3 class="font-semibold">{p.title}</h3>
             <p class="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">{p.body}</p>
@@ -342,7 +354,7 @@ const artifacts = [
 
     <!-- Credentials -->
     <div class="mt-4 grid gap-4 lg:grid-cols-12">
-      <div class="tile tile-glow reveal p-6 lg:col-span-5">
+      <div class="tile tile-glow p-6 lg:col-span-5">
         <p class="label label-signal">Education</p>
         <h3 class="mt-3 font-semibold">{education.degree}</h3>
         <p class="mt-1 text-sm text-ink-muted">{education.institution}</p>
@@ -350,7 +362,7 @@ const artifacts = [
         <p class="mt-4 text-sm leading-relaxed text-ink-muted">{education.note}</p>
       </div>
 
-      <div class="tile reveal p-6 lg:col-span-7">
+      <div class="tile p-6 lg:col-span-7">
         <p class="label">Client record · platform-computed, not self-reported</p>
         <div class="mt-4 grid gap-5 sm:grid-cols-2">
           {
@@ -359,6 +371,14 @@ const artifacts = [
                 <p class="label label-signal">{f.platform}</p>
                 <p class="figure mt-1.5 text-2xl font-medium">{f.stat}</p>
                 <p class="mt-1.5 text-xs leading-relaxed text-ink-muted">{f.detail}</p>
+                <a
+                  href={f.url}
+                  target="_blank"
+                  rel="noopener"
+                  class="mt-2 inline-block font-mono text-[11px] text-signal transition-opacity hover:opacity-70"
+                >
+                  Check the profile ↗
+                </a>
               </div>
             ))
           }
@@ -372,7 +392,7 @@ const artifacts = [
 
     <!-- GitHub + certifications -->
     <div class="mt-4 grid gap-4 lg:grid-cols-12">
-      <div class="tile reveal p-6 lg:col-span-7">
+      <div class="tile p-6 lg:col-span-7">
         <p class="label">GitHub · two accounts, and why</p>
         <div class="mt-4 space-y-4">
           {
@@ -396,7 +416,7 @@ const artifacts = [
         </div>
       </div>
 
-      <div class="tile tile-glow tile-glow-2 reveal p-6 lg:col-span-5">
+      <div class="tile tile-glow tile-glow-2 p-6 lg:col-span-5">
         <details class="group" open>
           <summary class="flex cursor-pointer list-none items-center justify-between gap-3">
             <div>
@@ -413,35 +433,46 @@ const artifacts = [
               +
             </span>
           </summary>
-          <ul class="mt-5 space-y-1 border-t border-white/6 pt-5">
+          <div class="mt-5 space-y-6 border-t border-white/6 pt-5">
             {
-              certifications.map((c) => (
-                <li>
-                  <a
-                    href={c.url}
-                    target="_blank"
-                    rel="noopener"
-                    class="group/cert flex items-baseline justify-between gap-3 rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-white/[0.03]"
-                  >
-                    <span class="text-xs leading-snug text-ink-muted transition-colors group-hover/cert:text-signal">
-                      {c.name}
-                      <span
-                        class="ml-1 inline-block text-[10px] text-ink-faint transition-colors group-hover/cert:text-signal"
-                        aria-hidden="true"
-                      >
-                        ↗
-                      </span>
-                    </span>
-                    <span class="shrink-0 font-mono text-[10px] text-ink-faint">
-                      {c.issuer} · {c.year}
-                    </span>
-                  </a>
-                </li>
+              certGroups.map(([group, items]) => (
+                <div>
+                  <p class="label flex items-baseline justify-between gap-3">
+                    <span>{group}</span>
+                    <span class="font-mono text-ink-faint">{items.length}</span>
+                  </p>
+                  <ul class="mt-2.5 space-y-1">
+                    {items.map((c) => (
+                      <li>
+                        <a
+                          href={c.url}
+                          target="_blank"
+                          rel="noopener"
+                          class="group/cert flex items-baseline justify-between gap-3 rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-white/[0.03]"
+                        >
+                          <span class="text-xs leading-snug text-ink-muted transition-colors group-hover/cert:text-signal">
+                            {c.name}
+                            <span
+                              class="ml-1 inline-block text-[10px] text-ink-faint transition-colors group-hover/cert:text-signal"
+                              aria-hidden="true"
+                            >
+                              ↗
+                            </span>
+                          </span>
+                          <span class="shrink-0 font-mono text-[10px] text-ink-faint">
+                            {c.issuer} · {c.year}
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))
             }
-          </ul>
-          <p class="mt-4 text-[11px] leading-relaxed text-ink-faint">
-            Every link goes to the issuer's own verification page.
+          </div>
+          <p class="mt-5 text-[11px] leading-relaxed text-ink-faint">
+            Grouped by what each one is evidence of. Every link goes to the issuer's own
+            verification page.
           </p>
         </details>
       </div>
@@ -461,7 +492,7 @@ const artifacts = [
       />
     </div>
 
-    <div class="reveal mt-9">
+    <div class="mt-9">
       <Contact />
     </div>
   </section>

@@ -65,7 +65,7 @@ function code(text: string): string {
     </header>
 
     {item.slug === 'radar-mlops' && (
-      <div class="reveal mt-4">
+      <div class="mt-4">
         <RadarDiagram />
       </div>
     )}
@@ -78,7 +78,7 @@ function code(text: string): string {
           ========================================================== -->
           <div class="space-y-4 lg:col-span-8">
             {study.blocks.map((block) => (
-              <section class="tile reveal p-6 sm:p-8">
+              <section class="tile p-6 sm:p-8">
                 <h2 class="text-lg font-semibold">{block.heading}</h2>
 
                 {block.body && (
@@ -102,7 +102,7 @@ function code(text: string): string {
             ))}
 
             <!-- The hard part gets its own emphasis -->
-            <section class="tile tile-glow tile-glow-2 reveal p-6 sm:p-8">
+            <section class="tile tile-glow tile-glow-2 p-6 sm:p-8">
               <p class="label label-signal">{study.hardPart.heading}</p>
               <p class="mt-3 text-lg leading-relaxed text-ink">{study.hardPart.body}</p>
             </section>
@@ -142,12 +142,6 @@ function code(text: string): string {
               </div>
             </div>
 
-            {study.caveat && (
-              <div class="tile p-6">
-                <p class="label" style="color: var(--color-warn)">What this page does not claim</p>
-                <p class="mt-2 text-xs leading-relaxed text-ink-muted">{study.caveat}</p>
-              </div>
-            )}
           </aside>
         </div>
       )

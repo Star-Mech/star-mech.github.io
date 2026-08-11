@@ -47,17 +47,25 @@ export const education = {
     'A top-tier Pakistani engineering school, and honestly not a computing degree. The freelance work below overlaps the final undergraduate years, which is exactly what it looks like. I was writing trading bots for clients while finishing the degree.',
 } as const;
 
-/** Platform-computed, independently checkable, and not perfect. */
+/**
+ * Platform-computed, independently checkable, and not perfect.
+ *
+ * `url` is the public profile in both cases. Note the MQL5 link points at the
+ * profile root, never at `/feedbacks`: the feedback page is deliberately not
+ * linked from this site.
+ */
 export const freelanceRecord = [
   {
     platform: 'MQL5',
     stat: '41 of 41',
     detail: 'jobs finished, 100% completion, at 4.7★ across 26 client ratings.',
+    url: 'https://www.mql5.com/en/users/hg65.kjover',
   },
   {
     platform: 'Upwork',
     stat: '12 of 12',
     detail: 'jobs completed, ID-verified. Recurring endorsements for clear communication and solution orientation.',
+    url: 'https://www.upwork.com/freelancers/~01a8a267d2c9993b32',
   },
 ] as const;
 
@@ -88,108 +96,126 @@ export const githubAccounts = [
 export const certifications = [
   {
     name: 'Functions, Tools and Agents with LangChain',
+    group: 'LLM & agent engineering',
     issuer: 'DeepLearning.AI',
     year: '2024',
     url: 'https://learn.deeplearning.ai/accomplishments/b9f249e7-b0cf-44a1-a499-b0ff92c6e010',
   },
   {
     name: 'LangChain for LLM Application Development',
+    group: 'LLM & agent engineering',
     issuer: 'DeepLearning.AI',
     year: '2024',
     url: 'https://learn.deeplearning.ai/accomplishments/d3325dcd-9959-48f4-81f2-8f4d26137f06',
   },
   {
     name: 'LangChain: Chat with Your Data',
+    group: 'LLM & agent engineering',
     issuer: 'DeepLearning.AI',
     year: '2024',
     url: 'https://learn.deeplearning.ai/accomplishments/655c3afa-b0a9-480c-a1f9-22f61e07207e',
   },
   {
     name: 'Building and Evaluating Advanced RAG',
+    group: 'LLM & agent engineering',
     issuer: 'DeepLearning.AI',
     year: '2024',
     url: 'https://learn.deeplearning.ai/accomplishments/4b6e77db-eeea-4460-957f-8018173e584f',
   },
   {
     name: 'Generative AI with Large Language Models',
+    group: 'LLM & agent engineering',
     issuer: 'DeepLearning.AI',
     year: '2024',
     url: 'https://www.coursera.org/account/accomplishments/verify/XY7Q29GRIY28',
   },
   {
     name: 'How Diffusion Models Work',
+    group: 'Machine learning foundations',
     issuer: 'DeepLearning.AI',
     year: '2024',
     url: 'https://learn.deeplearning.ai/accomplishments/b10f926c-0f1c-49be-9536-afaadc922ffe',
   },
   {
     name: 'ChatGPT Prompt Engineering for Developers',
+    group: 'LLM & agent engineering',
     issuer: 'DeepLearning.AI',
     year: '2024',
     url: 'https://learn.deeplearning.ai/accomplishments/d8ca229d-0376-4a9f-be20-84ca434ffcba',
   },
   {
     name: 'Create AI Powered Apps with Open Source LangChain',
+    group: 'LLM & agent engineering',
     issuer: 'IBM Skills Network',
     year: '2024',
     url: 'https://courses.cognitiveclass.ai/certificates/b80f0295441b462498fdaa98b8fc9c1f',
   },
   {
     name: 'Generative AI for Everyone',
+    group: 'LLM & agent engineering',
     issuer: 'Coursera',
     year: '2024',
     url: 'https://www.coursera.org/account/accomplishments/verify/3MC2E25LG96K',
   },
   {
     name: 'PyTorch for Deep Learning Bootcamp',
+    group: 'Machine learning foundations',
     issuer: 'Udemy',
     year: '2024',
     url: 'https://www.udemy.com/certificate/UC-f9298835-802a-4327-9991-e95859c7d628/',
   },
   {
     name: 'Deep Learning A–Z: Neural Networks, AI & ChatGPT',
+    group: 'Machine learning foundations',
     issuer: 'Udemy',
     year: '2024',
     url: 'https://www.udemy.com/certificate/UC-389f4392-612d-4729-b0ff-ce7b0e7aec09/',
   },
   {
     name: 'Python Mega Course: Build 20 Apps',
+    group: 'Software engineering',
     issuer: 'Udemy',
     year: '2024',
     url: 'https://www.udemy.com/certificate/UC-397655aa-7890-4a99-8936-d775d98f13b5/',
   },
   {
     name: 'Mathematics for Machine Learning and Data Science',
+    group: 'Machine learning foundations',
     issuer: 'Coursera',
     year: '2023',
     url: 'https://www.coursera.org/account/accomplishments/specialization/PSSDXRQW8S25',
   },
   {
     name: 'Django for Everybody Specialization',
+    group: 'Software engineering',
     issuer: 'University of Michigan',
     year: '2023',
     url: 'https://www.coursera.org/account/accomplishments/specialization/XX68EYM9UKM2',
   },
   {
     name: 'Machine Learning Specialization',
+    group: 'Machine learning foundations',
     issuer: 'University of Washington',
     year: '2023',
     url: 'https://www.coursera.org/account/accomplishments/specialization/8R2FKREBJH4V',
   },
   {
     name: 'AI for Medicine',
+    group: 'Machine learning foundations',
     issuer: 'Coursera',
     year: '2023',
     url: 'https://www.coursera.org/account/accomplishments/specialization/QW95P5AABXLE',
   },
   {
     name: '100 Days of Code: The Complete Python Pro Bootcamp',
+    group: 'Software engineering',
     issuer: 'Udemy',
     year: '2022',
     url: 'https://www.udemy.com/certificate/UC-89f201b3-4839-4691-a501-0527ff59c308/',
   },
   {
     name: 'Machine Learning Specialization',
+    group: 'Machine learning foundations',
     issuer: 'Stanford University',
     year: '2022',
     url: 'https://www.coursera.org/account/accomplishments/specialization/AYPKAJ8G8U9S',

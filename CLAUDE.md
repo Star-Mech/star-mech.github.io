@@ -68,8 +68,10 @@ Violating one is worse than shipping nothing.
   this on the record, so a page that broke it would make the site self-contradicting.
 - **Customer or organisation identifiers.** No org ids, no named customer appliances. Write
   "verified live on a real operator organisation".
-- **A computed years-of-experience total.** Hammad declined this explicitly. Dates and per-area
-  durations only — let the reader do the arithmetic.
+- **Durations of any kind against a skill.** Hammad declined a computed years-of-experience total,
+  and as of 2026-08-11 the per-area durations came off the practice-area cards too: they invited the
+  reader to add them up, and the corpus flags every one of those year counts as an estimate. The
+  cards carry evidence links instead. Role date ranges in the trajectory are fine and stay.
 - **A link to the MQL5 feedback page**, and never any implication of a flawless record. Both his
   freelance records are public and neither is spotless (one 1★ on MQL5, one 3.9 on Upwork). The
   about section says so outright, because a "perfect rating" claim is false and checkable in one
@@ -85,9 +87,16 @@ Violating one is worse than shipping nothing.
   nothing and is the site's whole credibility posture.
 - **Attach every number to its cause.** Hammad rejected a standalone metrics strip; figures live
   beside the thing that produced them.
-- **Attach every skill to its proof.** No skill appears detached from the system it was used on —
-  that is what the practice-area cross-links are for.
+- **Attach every skill to its proof.** No skill appears detached from the system it was used on.
+  That is what the practice-area cross-links are for.
 - **Honest location.** "Islamabad, Pakistan · Remote" (he relocated 2026-08-04).
+- **No em dashes in anything a visitor can see.** Cleared repo-wide on 2026-08-11, because a page
+  dense with them reads as machine-written and this site's whole argument is that a person did the
+  work. Recast the sentence with a colon, a comma or a full stop; do not swap in a hyphen, which is
+  worse typography and just as obvious. En dashes stay: they are doing real work in ranges
+  (`2017 – 2021`, `2–3 seconds`) and in the `60 – 18` figure. `·` is the separator for label pairs.
+  The check is `grep -c '—' dist/index.html dist/work/*/index.html`, and it must return zero
+  everywhere. Note that `is:inline` script comments ship in the HTML too, so they count.
 
 **Disclosure ceiling:** product names and architecture as already published on his own LinkedIn
 (AppManager AI, GFI RADAR, Gensym G2, Kerio Control, MyPersonas). Percentages, latencies, token
@@ -131,7 +140,7 @@ one edit in one place.
 
 | File | Holds |
 |---|---|
-| `site.ts` | Profile, links, nav, six practice areas, the five work items, `workViz` mapping |
+| `site.ts` | Profile, links, nav, six practice areas, the seven work items, `workViz` mapping |
 | `case-studies.ts` | Case-study bodies: `scope`, `blocks[]`, `hardPart`, `results[]`, `stack[]`, optional `caveat` |
 | `root-causes.ts` | The eight production failures: `symptom`, `looked_like`, `cause`, `fix`, `delta` |
 | `about.ts` | Principles, education, freelance record, GitHub accounts, 18 certifications, the timeline |
@@ -248,7 +257,7 @@ chrome --headless=new --disable-gpu --hide-scrollbars \
 Run all of these before calling any content change done.
 
 ```bash
-npm run build      # 0 errors, 7 pages
+npm run build      # 0 errors, 9 pages
 ```
 
 **Disclosure audit** — case-sensitive, and note the trap: adding `-i` makes `[A-Z]` match Tailwind

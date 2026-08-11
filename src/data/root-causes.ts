@@ -32,7 +32,7 @@ export const rootCauses: RootCause[] = [
       'The load balancer in front of the service enforced a 60-second idle timeout. A long answer that streamed nothing for 60 seconds looked idle to the load balancer, which closed the connection under a perfectly healthy request.',
     fix:
       'A heartbeat on the streaming channel so the connection is never idle while work is in progress, validated against the live load balancer rather than only locally.',
-    delta: '~92s with no answer became 39.16s with a complete answer — 2.4× faster on that path.',
+    delta: '~92s with no answer became 39.16s with a complete answer, 2.4× faster on that path.',
   },
   {
     id: 'inner-join',
@@ -42,22 +42,22 @@ export const rootCauses: RootCause[] = [
     looked_like:
       'A detection problem, or a transport problem between services. The pipeline reported success at every stage it knew about.',
     cause:
-      'An inner join on appliance lookup during ingestion. When the joined row was absent the whole record was dropped rather than flagged — 458 of 478 processing attempts were failing, and the failure was silent by construction.',
+      'During ingestion each anomaly was matched to the appliance it came from, using a database join that keeps a record only where the match succeeds. When the appliance was missing, the join discarded the entire anomaly rather than flagging it. 458 of 478 processing attempts were failing this way, and by construction not one of them left a trace.',
     fix:
-      'A deterministic left outer join with an explicit null filter, so a missing appliance produces a visible, handled case instead of a vanished anomaly.',
+      'Switched to a join that keeps the anomaly even when no appliance matches, with an explicit check for the empty value, so a missing appliance now produces a visible, handled case instead of a vanished anomaly.',
     delta: 'A 95.8% failure rate eliminated.',
   },
   {
     id: 'missing-index',
     kind: 'performance',
     symptom:
-      'The write API was returning gateway timeouts — 3,670 of them across a month.',
+      'The service that records detected anomalies and answers searches over them kept timing out. 3,670 failed requests across a month.',
     looked_like:
       'Capacity. The obvious read is that the service is undersized and needs more of it.',
     cause:
-      'Missing database indexes. One search endpoint accounted for 99.2% of the failures over a ten-day window, and it was doing unindexed work that grew with the table.',
+      'Missing database indexes. A single endpoint, the one that searches stored anomalies, accounted for 99.2% of the failures over a ten-day window. With no index to work from, every search read the whole table, so it got slower as the table grew.',
     fix:
-      'Scoped a composite index on the two columns every one of those queries filtered by, and had it applied.',
+      'Scoped an index covering the two columns every one of those searches filtered on, the appliance and the timestamp, and had it applied.',
     delta: 'Requests fell to roughly 2–3 seconds and the endpoint returned to 100% success. No extra capacity purchased.',
   },
   {
@@ -66,26 +66,26 @@ export const rootCauses: RootCause[] = [
     symptom:
       'Log analysis for denial-of-service anomalies failed outright on the biggest and most interesting cases.',
     looked_like:
-      'A model limitation — the prompt is too big, so use a bigger-context model or truncate and accept the loss.',
+      'A model limitation: the prompt is too big, so move to a bigger-context model, or truncate it and accept the loss.',
     cause:
       'A 216,479-token prompt against a 200,000-token limit, almost entirely near-identical log lines sent verbatim. The information content was a tiny fraction of the payload.',
     fix:
       'Structural deduplication before the prompt: collapse near-identical entries into groups with counts, preserving what the model needs to reason about and discarding the repetition.',
     delta:
-      '11,699 filtered entries became 32 groups — roughly 99% reduction, 216,479 tokens down to about 2,000 — validated across six controlled cases.',
+      '11,699 filtered entries became 32 groups, roughly a 99% reduction, taking 216,479 tokens down to about 2,000. Validated across six controlled cases.',
   },
   {
     id: 'ddos-no-actions',
-    kind: 'silent no-op',
+    kind: 'feature never fired',
     symptom:
       'Confirmed denial-of-service attacks were generating zero recommended firewall actions. The feature appeared to work; it just never fired.',
     looked_like:
-      'A tuning problem — thresholds too conservative, so raise the sensitivity.',
+      'A tuning problem: thresholds set too conservatively, so raise the sensitivity.',
     cause:
-      'Nothing was being tracked to act on. Across 1,137 historical records, not one had any attacker IP captured, so there was never anything for the action generator to reference.',
+      'There was nothing recorded to act on. Across 1,137 historical records, not one had captured the address of the attacker, so the part that recommends a block had never had anything to point at.',
     fix: 'Fixed the extraction so attacker addresses are captured and carried through to action generation.',
     delta:
-      'A subsequent SYN flood correctly flagged the attacking address at 18,453 connection attempts — 356× baseline — and generated a priority-one block. Baseline had been 0 of 1,137.',
+      'A later flood attack correctly flagged the attacking address at 18,453 connection attempts, 356× the normal rate, and generated a priority-one block. The baseline had been 0 of 1,137.',
   },
   {
     id: 'leaked-splits',
@@ -93,27 +93,28 @@ export const rootCauses: RootCause[] = [
     symptom: 'Evaluation metrics were strong. Suspiciously strong.',
     looked_like: 'A good model. Which is the most expensive thing to be wrong about.',
     cause:
-      'Random train/test splitting on time-series data. 300 of 3,300 evaluation points were data the model had trained on, so it was being scored partly on memory.',
+      'The test set was drawn at random from data that arrives in time order. 300 of the 3,300 evaluation points were records the model had already trained on, so it was being scored partly on memory.',
     fix:
-      'Re-architected the splits to be temporal, so evaluation always happens on the future relative to training — then optimised the decision threshold on the now-honest numbers.',
-    delta: 'Precision roughly doubled, 0.35 to 0.72, at minimal recall cost (1.0 to 0.967).',
+      'Re-architected the splits so evaluation always happens on data from after the training period, then optimised the decision threshold against the now-honest numbers.',
+    delta:
+      'Of the anomalies it flagged, the share that were real roughly doubled, 0.35 to 0.72, while the share of real anomalies it caught barely moved, 1.0 to 0.967.',
   },
   {
     id: 'shap-sign',
     kind: 'explainability',
     symptom:
-      'The generated insights named features that were not what made the record anomalous.',
-    looked_like: 'Prompt quality — the explanation text reads badly, so rewrite the prompt.',
+      'The written explanations named the wrong reasons, citing measurements that were not what made the record unusual.',
+    looked_like: 'Prompt quality. The explanation text reads badly, so rewrite the prompt.',
     cause:
-      'A sign-attribution error in how feature-importance values were consumed. Features pushing toward normal and features pushing toward anomalous were being treated alike, so the explanation could confidently cite the wrong driver.',
-    fix: 'Corrected the attribution so direction is preserved and only anomaly-driving features are cited.',
+      'Every measurement carries two things: how strongly it influenced the verdict, and which way it pushed, toward normal or toward anomalous. The code read the strength and ignored the direction. A measurement arguing forcefully that the record was normal could therefore be cited as the reason it had been flagged.',
+    fix: 'Corrected the attribution so direction is preserved, and only the measurements genuinely pushing toward anomalous are cited.',
     delta:
       'Attribution is now directionally correct. No before/after accuracy figure was measured, so none is claimed.',
   },
   {
     id: 'case-mismatch',
     kind: 'integration',
-    symptom: 'Triage notifications were mostly not arriving — 47 of 50 missing.',
+    symptom: 'Triage notifications were mostly not arriving. 47 of 50 went missing.',
     looked_like: 'A delivery or subscription problem in the notification service.',
     cause:
       'A metric name differed only in capitalisation between the producing and consuming systems. The transform matched exactly, so almost everything fell through.',

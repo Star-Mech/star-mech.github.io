@@ -24,7 +24,7 @@ const artifacts = [
     label: 'Peer-facing',
     title: 'First-author paper, arXiv',
     body:
-      'A hybrid rule base of 59 ICD-10 conditions fused with multi-class prediction over routine labs — built on real-world evidence from 593,055 patients across 547 US primary-care centres.',
+      'A hybrid rule base of 59 ICD-10 conditions fused with multi-class prediction over routine labs, built on real-world evidence from 593,055 patients across 547 US primary-care centres.',
     href: links.paper,
     cta: 'Read on arXiv',
   },
@@ -32,7 +32,7 @@ const artifacts = [
     label: 'Shipped & live',
     title: 'A hosted MCP server in customer hands',
     body:
-      'The Gensym G2 documentation copilot, running as an authenticated product with per-customer keys and instant revocation — 3 official manuals, 3,408 pages, 3,511 searchable chunks.',
+      'The Gensym G2 documentation copilot, running as an authenticated product with per-customer keys and instant revocation. 3 official manuals, 3,408 pages, 3,511 searchable chunks.',
     href: links.gensym,
     cta: 'Visit the product',
   },
@@ -40,7 +40,7 @@ const artifacts = [
     label: 'Open source',
     title: 'openrpc-mcp-server-updated',
     body:
-      'A stale community OpenRPC MCP server, forked and modernised so current clients could use it — published to npm and the base of the three-tool architecture.',
+      'A stale community OpenRPC MCP server, forked and modernised so current clients could use it, published to npm and the base of the three-tool architecture.',
     href: links.npm,
     cta: 'View on npm',
   },
@@ -59,7 +59,7 @@ const artifacts = [
           <div class="flex flex-wrap items-center gap-2">
             <span class="pill">
               <span class="dot-live"></span>
-              Open to work · immediate
+              Open to work
             </span>
             <span class="pill">{profile.location} · {profile.remote}</span>
           </div>
@@ -92,7 +92,7 @@ const artifacts = [
        Independently checkable
   =================================================================== -->
   <section class="mx-auto max-w-7xl px-4 py-4">
-    <p class="label mb-3 px-1">Independently checkable — not just my description of private work</p>
+    <p class="label mb-3 px-1">Independently checkable, not just my description of private work</p>
     <div class="grid gap-4 md:grid-cols-3">
       {
         artifacts.map((a, i) => (
@@ -162,10 +162,7 @@ const artifacts = [
             class="tile tile-interactive tile-glow reveal flex flex-col p-6"
             style={`transition-delay:${(i % 3) * 70}ms`}
           >
-            <div class="flex items-baseline justify-between gap-3">
-              <h3 class="font-semibold">{area.title}</h3>
-              <span class="shrink-0 font-mono text-[11px] text-ink-faint">{area.duration}</span>
-            </div>
+            <h3 class="font-semibold">{area.title}</h3>
             <p class="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">{area.blurb}</p>
             <p class="mt-5 flex flex-wrap gap-x-3 gap-y-1">
               {area.proof.map((slug) => (
@@ -191,7 +188,7 @@ const artifacts = [
       <SectionHeader
         id="work-heading"
         eyebrow="Selected work"
-        title="Five systems, and what each one turned on"
+        title="Seven systems, and what each one turned on"
         lede="Every figure sits beside the thing that produced it. None of them are decoration."
       />
     </div>
@@ -268,7 +265,7 @@ const artifacts = [
         id="rc-heading"
         eyebrow="Root cause"
         title="Eight production failures, and how each one was actually found"
-        lede="Every one of these had an obvious explanation that was wrong. The obvious explanation is the interesting part — it is what the fix had to survive. Open any card."
+        lede="Every one of these had an obvious explanation that was wrong. The obvious explanation is the interesting part: it is what the fix had to survive. Open any card."
       />
     </div>
 
@@ -282,7 +279,7 @@ const artifacts = [
       <SectionHeader
         eyebrow="Research"
         title="A hybrid rule-base and ML decision-support system, on real-world evidence"
-        lede="First-author, arXiv — a 59-condition ICD-10 rule base fused with multi-class prediction over routine labs, across 593,055 patients at 547 US primary-care centres."
+        lede="First-author, on arXiv: a 59-condition ICD-10 rule base fused with multi-class prediction over routine labs, across 593,055 patients at 547 US primary-care centres."
       />
       <p class="mt-6">
         <a href={links.paper} target="_blank" rel="noopener" class="btn-ghost">Read it on arXiv ↗</a>
@@ -354,7 +351,7 @@ const artifacts = [
       </div>
 
       <div class="tile reveal p-6 lg:col-span-7">
-        <p class="label">Client record — platform-computed, not self-reported</p>
+        <p class="label">Client record · platform-computed, not self-reported</p>
         <div class="mt-4 grid gap-5 sm:grid-cols-2">
           {
             freelanceRecord.map((f) => (
@@ -367,7 +364,7 @@ const artifacts = [
           }
         </div>
         <p class="mt-5 border-t border-white/6 pt-4 text-xs leading-relaxed text-ink-faint">
-          Both records are public and neither is spotless — there is a one-star review on MQL5 and a
+          Both records are public and neither is spotless. There is a one-star review on MQL5 and a
           3.9 on Upwork among the rest. The averages above are the real averages, not the good ones.
         </p>
       </div>
@@ -376,7 +373,7 @@ const artifacts = [
     <!-- GitHub + certifications -->
     <div class="mt-4 grid gap-4 lg:grid-cols-12">
       <div class="tile reveal p-6 lg:col-span-7">
-        <p class="label">GitHub — two accounts, and why</p>
+        <p class="label">GitHub · two accounts, and why</p>
         <div class="mt-4 space-y-4">
           {
             githubAccounts.map((g) => (
@@ -400,12 +397,13 @@ const artifacts = [
       </div>
 
       <div class="tile tile-glow tile-glow-2 reveal p-6 lg:col-span-5">
-        <details class="group">
+        <details class="group" open>
           <summary class="flex cursor-pointer list-none items-center justify-between gap-3">
             <div>
               <p class="label label-signal">Certifications</p>
               <p class="mt-1.5 text-sm text-ink">
-                <span class="figure">{certifications.length}</span> completed
+                <span class="figure">{certifications.length}</span> completed, each one linked to
+                its credential
               </p>
             </div>
             <span
@@ -415,18 +413,36 @@ const artifacts = [
               +
             </span>
           </summary>
-          <ul class="mt-5 space-y-2.5 border-t border-white/6 pt-5">
+          <ul class="mt-5 space-y-1 border-t border-white/6 pt-5">
             {
               certifications.map((c) => (
-                <li class="flex items-baseline justify-between gap-3">
-                  <span class="text-xs leading-snug text-ink-muted">{c.name}</span>
-                  <span class="shrink-0 font-mono text-[10px] text-ink-faint">
-                    {c.issuer} · {c.year}
-                  </span>
+                <li>
+                  <a
+                    href={c.url}
+                    target="_blank"
+                    rel="noopener"
+                    class="group/cert flex items-baseline justify-between gap-3 rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-white/[0.03]"
+                  >
+                    <span class="text-xs leading-snug text-ink-muted transition-colors group-hover/cert:text-signal">
+                      {c.name}
+                      <span
+                        class="ml-1 inline-block text-[10px] text-ink-faint transition-colors group-hover/cert:text-signal"
+                        aria-hidden="true"
+                      >
+                        ↗
+                      </span>
+                    </span>
+                    <span class="shrink-0 font-mono text-[10px] text-ink-faint">
+                      {c.issuer} · {c.year}
+                    </span>
+                  </a>
                 </li>
               ))
             }
           </ul>
+          <p class="mt-4 text-[11px] leading-relaxed text-ink-faint">
+            Every link goes to the issuer's own verification page.
+          </p>
         </details>
       </div>
     </div>
@@ -441,7 +457,7 @@ const artifacts = [
         id="contact-heading"
         eyebrow="Contact"
         title="Open to remote AI and LLM roles"
-        lede="Immediate availability. I read everything and reply to anything specific."
+        lede="Email and LinkedIn both reach me directly."
       />
     </div>
 

@@ -17,7 +17,7 @@ const schemas = Array.from({ length: schemaCount }, (_, i) => i);
 const steps = [
   {
     call: 'rpc_discover',
-    detail: 'Returns method names only — no schemas. A directory, not a manual.',
+    detail: 'Returns method names only, no schemas. A directory, not a manual.',
     /**
      * What comes back, shown when this step is active. Deliberately generic —
      * the evidence does not record specific method names, so none are invented.
@@ -27,12 +27,12 @@ const steps = [
   {
     call: 'rpc_method_detail',
     detail: 'Pulls the full schema for the one method the model chose.',
-    returns: '1 schema — params, types, required fields',
+    returns: '1 schema: params, types, required fields',
   },
   {
     call: 'rpc_call',
     detail: 'Invokes it. Context holds three tool definitions, start to finish.',
-    returns: '200 OK — the appliance did the thing',
+    returns: '200 OK: the appliance did the thing',
   },
 ];
 ---
@@ -186,7 +186,7 @@ const steps = [
 
       <p class="mt-6 text-sm leading-relaxed text-ink-muted">
         The model asks what exists, then asks about one thing, then acts. All{' '}
-        <span class="figure">334</span> methods stay reachable —{' '}
+        <span class="figure">334</span> methods stay reachable,{' '}
         <span class="figure">3</span> tool definitions stay resident.
       </p>
 
@@ -205,7 +205,7 @@ const steps = [
    * The markup above already renders the complete, correct end state. This only
    * adds the ability to walk the three calls one at a time. If the script never
    * runs, or the visitor asked for reduced motion, the controls stay hidden and
-   * the panel reads exactly as it did before — there is no state in which a
+   * the panel reads exactly as it did before. There is no state in which a
    * control exists but does nothing.
    */
   (() => {

@@ -1,0 +1,668 @@
+---
+/**
+ * The SMART EOB OCR pipeline, as Celery actually composed it.
+ *
+ * Drawn with nested frames and named barriers rather than connectors. The
+ * RADAR diagram already paid for that lesson: an SVG rail layer over a CSS
+ * grid is two layout systems that have to agree at every breakpoint, and they
+ * drift. Frames nest correctly at any width, and a barrier that is a labelled
+ * strip reads correctly to a screen reader in a way an arrowhead does not.
+ *
+ * Everything load-bearing is rendered server-side: the topology, the stage
+ * labels, what bounded each stage's concurrency, and the reliability note. The
+ * detail panel only adds depth, so a visitor with no JavaScript still gets the
+ * whole mechanism.
+ *
+ * Deliberately absent: queue names, task function names and worker counts. The
+ * pattern was confirmed, the identifiers were not, and a plausible-looking name
+ * invented to fill a box is the exact failure this repo has already caught
+ * twice.
+ */
+
+interface Item {
+  id: string;
+  label: string;
+  detail: string;
+}
+
+/** Stages and barriers, in the order a document meets them. */
+const items: Item[] = [
+  {
+    id: 's1',
+    label: 'Convert to page images',
+    detail:
+      'Every EOB arrives as a PDF and leaves this stage as one image per page. Inside a single document the pages convert in sequence, because they are one file being read front to back. Across documents there is no ordering at all, so hundreds convert at once and the worker count on this stage is what decides how many. The images are written to local disk and only their database paths travel through the queue: a page image is far too large to put in a message body.',
+  },
+  {
+    id: 'b1',
+    label: 'Barrier: all documents converted',
+    detail:
+      'A real barrier, and an intentional one. No page is preprocessed until every document in the batch has finished converting. The callback that fires here summarises what the batch is about to process, which is worth having on its own, and conversion was quick enough that unblocking it would have bought complexity rather than time. Recognising a barrier and then deciding to keep it is a different thing from not noticing it.',
+  },
+  {
+    id: 's2',
+    label: 'Preprocess the page',
+    detail:
+      'Prepares one page image for optical character recognition. This is where the per-page chain begins: from here down to the aggregate step, every page moves through the pipeline independently of every other page in its document. Its own queue and its own worker pool, like every other stage.',
+  },
+  {
+    id: 's3',
+    label: 'Read the page twice',
+    detail:
+      'Both engines read the same page at the same time, on separate queues with separate worker pools. PaddleOCR is the primary reader and runs on the GPU, so its pool is capped at the number of prefork processes one card will hold without running out of VRAM, rather than at a round number. Tesseract runs on the CPU and is slower per page, so its pool is deliberately wider: sized so the two engines come back at roughly the same rate and neither sits waiting on the other.',
+  },
+  {
+    id: 'b2',
+    label: 'Barrier: both readings for this page',
+    detail:
+      'A chord, and not one written by hand. A group placed inside a chain and followed by another task is upgraded to a chord automatically, so the two OCR calls become a group whose callback is the aggregate step. The important part is that this join is per page, not per document: page seven can be aggregated while page eight is still being read.',
+  },
+  {
+    id: 's4',
+    label: 'Aggregate the two readings',
+    detail:
+      'Compares what the two engines proposed for this page: the claim identifiers, where on the page each one was found, and how far the two overlap. PaddleOCR wins where it produced a valid identifier; where it did not, the Tesseract reading is used instead of dropping the page. If one engine fails outright the step falls back to the single available reading rather than failing the batch around it. A page can carry no claims or many.',
+  },
+  {
+    id: 'b3',
+    label: 'Barrier: every page of this document',
+    detail:
+      'The second real barrier, and the point where the pipeline stops thinking in pages and starts thinking in documents again. It is scoped to one document, not to the batch: a short document is written while a long one is still being read, so nothing waits on work it does not depend on.',
+  },
+  {
+    id: 's5',
+    label: 'Write the document',
+    detail:
+      'Once every page of a document has been aggregated, one task marks up all of that document’s pages with the claims found in them and commits them as a single batched ORM operation. Concurrency here is bounded by worker count for a specific reason: uncontrolled parallel writes are not faster, they are write errors and contention. The bound is what makes this stage fast, not what slows it down.',
+  },
+];
+
+const overview = {
+  label: 'The pipeline',
+  detail:
+    'RabbitMQ carries the messages, Celery composes the work, and the Django database is the result backend, which makes it the thing that counts every barrier on this diagram. Documents fan out, pages fan out inside them, and the two OCR engines fan out inside each page. Select any stage or barrier to see what it does and what bounded it.',
+  metric: 'five stages, three barriers',
+};
+---
+
+<div class="tile tile-glow overflow-hidden" data-eob>
+  <div class="border-b border-white/6 px-5 py-4 sm:px-6">
+    <p class="label label-signal">Architecture</p>
+    <h3 class="mt-1.5 font-semibold">The pipeline, as Celery composed it</h3>
+    <p class="mt-1 text-xs text-ink-faint">
+      Five stages over RabbitMQ. Three barriers, each at a different scope: the batch, one page,
+      one document.
+    </p>
+  </div>
+
+  <!-- ================================================================
+       The drawn diagram.
+
+       One self-contained SVG: nodes, frames and connectors all live in the
+       same coordinate space, so there is nothing for a second layout system
+       to disagree with. The visual language is three things and no more:
+       a teal frame is a scope, depth behind a frame or a card means the same
+       task running in parallel, and a violet dashed wall is a barrier, drawn
+       on whichever side of the scope the flow leaves by.
+
+       Presentational. Everything it shows is also written out in the stepped
+       list below, which is what carries the detail on a narrow screen.
+  ================================================================ -->
+  <div class="scroll-x border-b border-white/6 px-5 py-5 sm:px-6">
+    <svg
+      viewBox="0 0 1180 552"
+      class="eob-svg block h-auto w-full min-w-[1024px]"
+      role="img"
+      aria-labelledby="eob-svg-title eob-svg-desc"
+      data-eob-svg
+    >
+      <title id="eob-svg-title">The SMART EOB OCR pipeline</title>
+      <desc id="eob-svg-desc">
+        A batch of EOB PDFs fans out into one Celery branch per document, which converts each
+        document to page images. A barrier waits for every document. Then, for each document, a
+        second fan-out runs one chain per page: preprocess, then PaddleOCR and Tesseract reading
+        the same page at once, a per-page barrier, then aggregation. A per-document barrier waits
+        for every page before the document is written in one batched database operation and its
+        page images are cleaned up.
+      </desc>
+
+      <defs>
+        <marker
+          id="eob-arrow"
+          viewBox="0 0 8 8"
+          refX="7.5"
+          refY="4"
+          markerWidth="5.5"
+          markerHeight="5.5"
+          orient="auto-start-reverse"
+        >
+          <path d="M0,0 L8,4 L0,8 z" fill="var(--color-ink-faint)" />
+        </marker>
+      </defs>
+
+      <!-- trigger -->
+      <text class="m f" x="16" y="24">
+        triggered by Celery beat · Django admin action · manual upload
+      </text>
+
+      <!-- ============ scope: the batch ============ -->
+      <g data-svg="s1">
+        <rect class="scope" x="16" y="40" width="280" height="228" rx="14" />
+        <text class="m sig" x="30" y="62">chord · one branch per document</text>
+
+        <rect class="ghost" x="48" y="76" width="224" height="132" rx="9" />
+        <rect class="ghost g2" x="40" y="84" width="224" height="132" rx="9" />
+        <rect class="n-box" x="32" y="92" width="224" height="132" rx="9" />
+
+        <text class="m sig" x="46" y="118">01</text>
+        <text class="t" x="70" y="118">Convert to page</text>
+        <text class="t" x="70" y="135">images</text>
+        <text class="m f" x="46" y="160">pages in sequence,</text>
+        <text class="m f" x="46" y="174">documents in parallel</text>
+        <text class="m v" x="46" y="196">bound: worker count</text>
+        <text class="m v" x="46" y="210">= docs in flight</text>
+      </g>
+
+      <!-- barrier: the batch -->
+      <g data-svg="b1">
+        <line class="b-wall" x1="296" y1="40" x2="296" y2="268" />
+        <text class="m v" x="16" y="290">barrier · all documents converted</text>
+        <text class="m v" x="16" y="304">before any page moves on</text>
+      </g>
+
+      <path class="wire" d="M300,154 H310" marker-end="url(#eob-arrow)" />
+
+      <rect class="aux" x="316" y="128" width="140" height="52" rx="8" />
+      <text class="m f" x="328" y="148">callback ·</text>
+      <text class="m f" x="328" y="162">summarises the</text>
+      <text class="m f" x="328" y="176">batch</text>
+
+      <path class="wire" d="M456,154 H466" marker-end="url(#eob-arrow)" />
+
+      <!-- ============ scope: one document ============ -->
+      <rect class="scope dim" x="470" y="40" width="694" height="460" rx="14" />
+      <text class="m mut" x="486" y="62">chain · runs for each document</text>
+
+      <!-- ============ scope: one page, N of them ============ -->
+      <rect class="ghost" x="502" y="70" width="646" height="250" rx="12" />
+      <rect class="ghost g2" x="494" y="78" width="646" height="250" rx="12" />
+      <rect class="scope" x="486" y="86" width="646" height="250" rx="12" />
+      <text class="m sig" x="502" y="108">chord · one chain per page, every page at once</text>
+
+      <g data-svg="s2">
+        <rect class="n-box" x="502" y="124" width="136" height="180" rx="9" />
+        <text class="m sig" x="514" y="150">02</text>
+        <text class="t" x="538" y="150">Preprocess</text>
+        <text class="t" x="538" y="167">the page</text>
+        <text class="m f" x="514" y="196">own queue,</text>
+        <text class="m f" x="514" y="210">own worker</text>
+        <text class="m f" x="514" y="224">pool</text>
+      </g>
+
+      <path class="wire" d="M638,214 H650" marker-end="url(#eob-arrow)" />
+
+      <g data-svg="s3">
+        <rect class="n-box" x="656" y="124" width="232" height="180" rx="9" />
+        <text class="m sig" x="668" y="150">03</text>
+        <text class="t" x="692" y="150">Read the page</text>
+        <text class="t" x="692" y="167">twice</text>
+        <text class="m f" x="668" y="188">both engines at once</text>
+
+        <rect class="eng" x="668" y="198" width="208" height="46" rx="7" />
+        <text class="t s" x="680" y="216">PaddleOCR</text>
+        <text class="m f xs" x="680" y="232">GPU, prefork · VRAM ceiling</text>
+
+        <rect class="eng" x="668" y="250" width="208" height="46" rx="7" />
+        <text class="t s" x="680" y="268">Tesseract</text>
+        <text class="m f xs" x="680" y="284">CPU · wider, rate-matched</text>
+      </g>
+
+      <!-- barrier: one page -->
+      <g data-svg="b2">
+        <line class="b-wall" x1="912" y1="104" x2="912" y2="318" />
+        <text class="m v" transform="rotate(-90 900 211)" x="900" y="211" text-anchor="middle">
+          barrier · both readings, this page
+        </text>
+      </g>
+
+      <path class="wire" d="M916,214 H924" marker-end="url(#eob-arrow)" />
+
+      <g data-svg="s4">
+        <rect class="n-box" x="930" y="124" width="186" height="180" rx="9" />
+        <text class="m sig" x="942" y="150">04</text>
+        <text class="t" x="966" y="150">Aggregate</text>
+        <text class="t" x="966" y="167">the readings</text>
+        <text class="m f" x="942" y="196">coordinate overlap</text>
+        <text class="m f" x="942" y="210">PaddleOCR primary,</text>
+        <text class="m f" x="942" y="224">Tesseract fallback</text>
+        <text class="m v" x="942" y="248">a page carries no</text>
+        <text class="m v" x="942" y="262">claims or many</text>
+      </g>
+
+      <!-- barrier: one document -->
+      <g data-svg="b3">
+        <line class="b-wall" x1="486" y1="336" x2="1132" y2="336" />
+        <text class="m v" x="486" y="358">barrier · every page of this document aggregated</text>
+      </g>
+
+      <path class="wire" d="M809,340 V374" marker-end="url(#eob-arrow)" />
+
+      <g data-svg="s5">
+        <rect class="n-box" x="486" y="378" width="646" height="76" rx="9" />
+        <text class="m sig" x="500" y="404">05</text>
+        <text class="t" x="524" y="404">Write the document</text>
+        <text class="m f" x="500" y="426">
+          one batched ORM write per document, all its pages marked up
+        </text>
+        <text class="m v" x="500" y="444">bound: worker count = documents writing at once</text>
+      </g>
+
+      <path class="wire" d="M809,454 V464" marker-end="url(#eob-arrow)" />
+
+      <rect class="aux" x="486" y="468" width="646" height="26" rx="6" />
+      <text class="m f" x="500" y="485">
+        cleanup · the document’s page images come off disk once it is written
+      </text>
+
+      <!-- legend -->
+      <rect class="lg-box" x="16" y="516" width="20" height="14" rx="3" />
+      <text class="m f" x="44" y="527">stage</text>
+
+      <line class="b-wall" x1="118" y1="514" x2="118" y2="532" />
+      <text class="m f" x="130" y="527">barrier: everything arrives before anything continues</text>
+
+      <rect class="ghost" x="470" y="514" width="20" height="14" rx="3" />
+      <rect class="lg-box" x="464" y="518" width="20" height="14" rx="3" />
+      <text class="m f" x="494" y="527">depth: the same task running in parallel</text>
+    </svg>
+  </div>
+
+  <div class="grid lg:grid-cols-12">
+    <!-- ==============================================================
+         The same pipeline, written out
+    ============================================================== -->
+    <div class="p-5 sm:p-6 lg:col-span-8">
+      <!-- Entry points -->
+      <div class="flex flex-wrap items-center gap-1.5">
+        <span class="font-mono text-[11px] text-ink-faint">triggered by</span>
+        <span class="tag">Celery beat</span>
+        <span class="tag">Django admin action</span>
+        <span class="tag">manual upload</span>
+      </div>
+
+      <p class="mt-2 font-mono text-[10px] text-ink-faint" aria-hidden="true">↓ a batch of EOB PDFs</p>
+
+      <!-- ---------- Chord 1: the batch ---------- -->
+      <div class="mt-2 rounded-xl border border-signal/25 bg-signal/[0.03] p-2.5 sm:p-3">
+        <p class="font-mono text-[10px] leading-tight text-signal">
+          chord · one branch per document, all in flight at once
+        </p>
+
+        <button type="button" data-eob-node="s1" class="eob-card mt-2.5" aria-pressed="false">
+          <span class="eob-n">01</span>
+          <span class="eob-t">Convert to page images</span>
+          <span class="eob-s">pages in sequence within a document, documents in parallel</span>
+          <span class="eob-b">bound: worker count sets how many documents convert at once</span>
+        </button>
+
+        <button type="button" data-eob-node="b1" class="eob-bar mt-2" aria-pressed="false">
+          <span class="eob-bar-k">barrier</span>
+          <span class="eob-bar-t">all documents converted before any page moves on</span>
+        </button>
+      </div>
+
+      <p class="mt-2 font-mono text-[10px] text-ink-faint" aria-hidden="true">↓</p>
+
+      <!-- Chord callback. Static: it is one sentence and it is not a stage. -->
+      <p class="mt-2 rounded-lg border border-white/8 bg-black/25 px-3 py-2 font-mono text-[10px] leading-relaxed text-ink-faint">
+        callback · summarises what the batch is about to process, then starts the chain
+      </p>
+
+      <p class="mt-2 font-mono text-[10px] text-ink-faint" aria-hidden="true">↓</p>
+
+      <!-- ---------- Chain: per document ---------- -->
+      <div class="mt-2 rounded-xl border border-white/10 bg-black/15 p-2.5 sm:p-3">
+        <p class="font-mono text-[10px] leading-tight text-ink-muted">chain · runs for each document</p>
+
+        <!-- ---------- Chord 2: per page ---------- -->
+        <div class="mt-2.5 rounded-lg border border-signal/25 bg-signal/[0.03] p-2.5">
+          <p class="font-mono text-[10px] leading-tight text-signal">
+            chord · one chain per page, every page of the document at once
+          </p>
+
+          <button type="button" data-eob-node="s2" class="eob-card mt-2.5" aria-pressed="false">
+            <span class="eob-n">02</span>
+            <span class="eob-t">Preprocess the page</span>
+            <span class="eob-s">own queue, own worker pool</span>
+          </button>
+
+          <p class="my-1.5 font-mono text-[10px] text-ink-faint" aria-hidden="true">↓</p>
+
+          <button type="button" data-eob-node="s3" class="eob-card" aria-pressed="false">
+            <span class="eob-n">03</span>
+            <span class="eob-t">Read the page twice</span>
+            <span class="eob-s">both engines on the same page, at the same time</span>
+            <span class="mt-2 grid grid-cols-2 gap-2">
+              <span class="rounded-md border border-white/8 bg-black/30 px-2 py-1.5">
+                <span class="block text-[11px] leading-tight font-medium text-ink">PaddleOCR</span>
+                <span class="mt-0.5 block font-mono text-[10px] leading-tight text-ink-faint">
+                  GPU, prefork · capped at what one card’s VRAM holds
+                </span>
+              </span>
+              <span class="rounded-md border border-white/8 bg-black/30 px-2 py-1.5">
+                <span class="block text-[11px] leading-tight font-medium text-ink">Tesseract</span>
+                <span class="mt-0.5 block font-mono text-[10px] leading-tight text-ink-faint">
+                  CPU · wider pool, sized to match the GPU stage
+                </span>
+              </span>
+            </span>
+          </button>
+
+          <button type="button" data-eob-node="b2" class="eob-bar mt-2" aria-pressed="false">
+            <span class="eob-bar-k">barrier</span>
+            <span class="eob-bar-t">both engines returned, for this one page</span>
+          </button>
+
+          <p class="my-1.5 font-mono text-[10px] text-ink-faint" aria-hidden="true">↓</p>
+
+          <button type="button" data-eob-node="s4" class="eob-card" aria-pressed="false">
+            <span class="eob-n">04</span>
+            <span class="eob-t">Aggregate the two readings</span>
+            <span class="eob-s">
+              coordinate overlap · PaddleOCR primary, Tesseract the fallback
+            </span>
+            <span class="eob-b">a page carries no claims or many</span>
+          </button>
+
+          <button type="button" data-eob-node="b3" class="eob-bar mt-2" aria-pressed="false">
+            <span class="eob-bar-k">barrier</span>
+            <span class="eob-bar-t">every page of this document aggregated</span>
+          </button>
+        </div>
+
+        <p class="my-1.5 font-mono text-[10px] text-ink-faint" aria-hidden="true">↓</p>
+
+        <button type="button" data-eob-node="s5" class="eob-card" aria-pressed="false">
+          <span class="eob-n">05</span>
+          <span class="eob-t">Write the document</span>
+          <span class="eob-s">one batched ORM write per document, all its pages marked up</span>
+          <span class="eob-b">bound: worker count sets how many documents write at once</span>
+        </button>
+
+        <p class="my-1.5 font-mono text-[10px] text-ink-faint" aria-hidden="true">↓</p>
+
+        <p class="rounded-lg border border-white/8 bg-black/25 px-3 py-2 font-mono text-[10px] leading-relaxed text-ink-faint">
+          cleanup · the document’s page images come off disk once it is written
+        </p>
+      </div>
+
+      <!-- Static, because it is the argument the diagram is making -->
+      <p class="mt-4 border-l-2 border-signal/40 pl-3 text-xs leading-relaxed text-ink-muted">
+        Every stage is capped at its own real ceiling: VRAM for the GPU reader, throughput for the
+        CPU reader, write contention for the database. The rest are then rate-matched to whichever
+        one is slowest, so no stage sits idle waiting and none of them overruns the stage below it.
+      </p>
+    </div>
+
+    <!-- ==============================================================
+         Detail panel
+    ============================================================== -->
+    <div class="border-t border-white/6 bg-black/20 p-5 sm:p-6 lg:col-span-4 lg:border-t-0 lg:border-l">
+      <p class="label" data-eob-label>{overview.label}</p>
+      <p class="mt-3 text-sm leading-relaxed text-ink-muted" data-eob-detail>{overview.detail}</p>
+      <p class="figure mt-4 font-mono text-xs" data-eob-metric>{overview.metric}</p>
+
+      <hr class="rule my-6" />
+
+      <p class="label">If it stops</p>
+      <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+        Retries with backoff at every stage, and a status column on both the page and the document.
+        Each task checks that state before it runs, so a crashed worker or a restarted machine
+        picks the batch up where it stopped rather than processing anything a second time.
+      </p>
+      <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+        Page images live on local disk. Only their database paths travel through the queue.
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* --- The drawn diagram ------------------------------------------------
+     Text classes are terse because they repeat forty times: m = mono,
+     t = title, f = faint, sig = signal, v = the violet barrier token. */
+  .eob-svg .m {
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+  .eob-svg .t {
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    font-weight: 500;
+    fill: var(--color-ink);
+  }
+  .eob-svg .t.s {
+    font-size: 12px;
+  }
+  .eob-svg .xs {
+    font-size: 9px;
+  }
+  .eob-svg .f {
+    fill: var(--color-ink-faint);
+  }
+  .eob-svg .mut {
+    fill: var(--color-ink-muted);
+  }
+  .eob-svg .sig {
+    fill: var(--color-signal);
+  }
+  .eob-svg .v {
+    fill: var(--color-accent-2);
+  }
+
+  /* A scope: the frame a set of tasks runs inside */
+  .eob-svg .scope {
+    fill: rgb(77 212 200 / 0.035);
+    stroke: rgb(77 212 200 / 0.32);
+    stroke-width: 1;
+  }
+  .eob-svg .scope.dim {
+    fill: rgb(0 0 0 / 0.12);
+    stroke: rgb(255 255 255 / 0.14);
+  }
+
+  /* Depth behind a card or a scope: the same task, many at once */
+  .eob-svg .ghost {
+    fill: rgb(0 0 0 / 0.25);
+    stroke: rgb(255 255 255 / 0.09);
+    stroke-width: 1;
+  }
+  .eob-svg .ghost.g2 {
+    stroke: rgb(255 255 255 / 0.13);
+  }
+
+  .eob-svg .n-box,
+  .eob-svg .lg-box {
+    fill: rgb(0 0 0 / 0.34);
+    stroke: rgb(255 255 255 / 0.16);
+    stroke-width: 1;
+    transition:
+      stroke 200ms ease,
+      fill 200ms ease;
+  }
+  .eob-svg .eng,
+  .eob-svg .aux {
+    fill: rgb(0 0 0 / 0.3);
+    stroke: rgb(255 255 255 / 0.1);
+    stroke-width: 1;
+  }
+
+  /* A barrier is a wall on whichever side of the scope the flow leaves by.
+     Violet, never warn or fail: a barrier is a synchronisation point, and a
+     red line on this site always means something broke. */
+  .eob-svg .b-wall {
+    stroke: var(--color-accent-2);
+    stroke-width: 2.5;
+    stroke-dasharray: 7 6;
+    stroke-linecap: round;
+    opacity: 0.75;
+    transition:
+      opacity 200ms ease,
+      stroke-width 200ms ease;
+  }
+
+  .eob-svg .wire {
+    fill: none;
+    stroke: var(--color-ink-faint);
+    stroke-width: 1.4;
+    opacity: 0.75;
+  }
+
+  /* Selecting a step in the list below lights it up in the drawing, so the two
+     representations are visibly the same object. */
+  .eob-svg .is-active .n-box {
+    fill: rgb(77 212 200 / 0.14);
+    stroke: var(--color-signal);
+  }
+  .eob-svg .is-active .b-wall {
+    opacity: 1;
+    stroke-width: 3.5;
+  }
+
+  /* Card and barrier are used often enough here to be worth naming once. Both
+     are native <button> elements, so focus, tab order and Enter/Space come
+     from the platform. */
+  .eob-card {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border-radius: 0.5rem;
+    border: 1px solid rgb(255 255 255 / 0.08);
+    background: rgb(0 0 0 / 0.3);
+    padding: 0.6rem 0.7rem;
+    transition:
+      border-color 200ms ease,
+      background-color 200ms ease;
+  }
+
+  .eob-card:hover {
+    border-color: var(--color-signal-dim);
+  }
+
+  .eob-card[aria-pressed='true'] {
+    border-color: var(--color-signal);
+    background: rgb(77 212 200 / 0.09);
+  }
+
+  .eob-n {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: rgb(77 212 200 / 0.7);
+    margin-right: 0.4rem;
+  }
+
+  .eob-t {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--color-ink);
+  }
+
+  .eob-s {
+    display: block;
+    margin-top: 0.2rem;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.45;
+    color: var(--color-ink-faint);
+  }
+
+  .eob-b {
+    display: block;
+    margin-top: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.45;
+    color: var(--color-accent-2);
+  }
+
+  /* Barriers get the violet token rather than warn or fail: a barrier is a
+     synchronisation point, not a failure, and on this site a red bar always
+     means something broke. */
+  .eob-bar {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border-radius: 0.375rem;
+    border: 1px dashed rgb(167 139 250 / 0.4);
+    background: rgb(167 139 250 / 0.05);
+    padding: 0.4rem 0.6rem;
+    transition:
+      border-color 200ms ease,
+      background-color 200ms ease;
+  }
+
+  .eob-bar:hover {
+    border-color: rgb(167 139 250 / 0.75);
+  }
+
+  .eob-bar[aria-pressed='true'] {
+    border-style: solid;
+    border-color: var(--color-accent-2);
+    background: rgb(167 139 250 / 0.12);
+  }
+
+  .eob-bar-k {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-accent-2);
+    margin-right: 0.45rem;
+  }
+
+  .eob-bar-t {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.45;
+    color: var(--color-ink-muted);
+  }
+</style>
+
+<script is:inline define:vars={{ items, overview }}>
+  /**
+   * Fills the detail panel from the selected stage or barrier. The panel is
+   * server-rendered with the overview and every card already carries its label,
+   * what it does and what bounded it, so with no JavaScript the diagram is
+   * still complete and every node still reads as a labelled stage.
+   */
+  (() => {
+    const root = document.querySelector('[data-eob]');
+    if (!root) return;
+
+    const labelEl = root.querySelector('[data-eob-label]');
+    const detailEl = root.querySelector('[data-eob-detail]');
+    const metricEl = root.querySelector('[data-eob-metric]');
+    const buttons = Array.from(root.querySelectorAll('[data-eob-node]'));
+    const svgNodes = Array.from(root.querySelectorAll('[data-svg]'));
+    if (!labelEl || !detailEl || !metricEl || !buttons.length) return;
+
+    const byId = Object.fromEntries(items.map((n) => [n.id, n]));
+
+    function show(id) {
+      const n = id ? byId[id] : null;
+      labelEl.textContent = n ? n.label : overview.label;
+      detailEl.textContent = n ? n.detail : overview.detail;
+      metricEl.hidden = Boolean(n);
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.eobNode === id)));
+      svgNodes.forEach((g) => g.classList.toggle('is-active', g.dataset.svg === id));
+    }
+
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        const already = b.getAttribute('aria-pressed') === 'true';
+        show(already ? null : b.dataset.eobNode);
+      })
+    );
+  })();
+</script>

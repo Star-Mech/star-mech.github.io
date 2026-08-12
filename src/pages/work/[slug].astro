@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import MiniViz from '../../components/MiniViz.astro';
 import RadarDiagram from '../../components/RadarDiagram.astro';
+import EobPipeline from '../../components/EobPipeline.astro';
 import { work, workViz, profile } from '../../data/site';
 import { caseStudyBySlug } from '../../data/case-studies';
 
@@ -67,6 +68,12 @@ function code(text: string): string {
     {item.slug === 'radar-mlops' && (
       <div class="mt-4">
         <RadarDiagram />
+      </div>
+    )}
+
+    {item.slug === 'smart-eob' && (
+      <div class="mt-4">
+        <EobPipeline />
       </div>
     )}
 

@@ -30,7 +30,16 @@ site can be trusted, and a violation is public the moment it ships.
 
 ```bash
 cd /f/portfolio-site
-npm run build          # must be 0 errors, 7 pages
+npm run build          # 0 errors. Page count is one per work item, plus index and 404.
+```
+
+Do not memorise the page count: it moves every time a case study is added. Check it against the
+work items instead, so a silently dropped route is still caught:
+
+```bash
+# routes come from work[] in site.ts, via getStaticPaths in work/[slug].astro
+test "$(ls -d dist/work/*/ | wc -l)" = "$(grep -cE "^\s+slug: '" src/data/site.ts)" \
+  && echo "every work item built" || echo "MISMATCH: a route is missing"
 ```
 
 Then the disclosure audit. **Case-sensitive** — adding `-i` makes `[A-Z]` match Tailwind class names
@@ -71,17 +80,25 @@ A Node 20 deprecation warning from the actions is expected and harmless.
 
 A green workflow does not prove the site is correct. Always fetch it:
 
+The work routes are derived from `dist/`, not typed out. A hand-written list goes stale the next
+time a case study is added, and the page it forgets is the one nobody checks:
+
 ```bash
+cd /f/portfolio-site
 B=https://star-mech.github.io
-for p in / /404.html /og.png /robots.txt /sitemap-index.xml /Hammad-Maqsood-CV.pdf \
-         /work/mcp-334-to-3/ /work/appmanager-langgraph/ /work/radar-mlops/ \
-         /work/the-no-go/ /work/gensym-g2-copilot/; do
-  printf "%-32s %s\n" "$p" "$(curl -s -o /dev/null -w '%{http_code} %{size_download}' -L "$B$p")"
+ROUTES="/ /404.html /og.png /robots.txt /sitemap-index.xml /Hammad-Maqsood-CV.pdf"
+for d in dist/work/*/; do ROUTES="$ROUTES /work/$(basename "$d")/"; done
+for p in $ROUTES; do
+  printf "%-34s %s\n" "$p" "$(curl -s -o /dev/null -w '%{http_code} %{size_download}' -L "$B$p")"
 done
 ```
 
 All must be `200`. The CV must be ~140 KB and start with `%PDF-` — **that URL is printed on
-Hammad's actual CV**, so a 404 there is worse than a broken page.
+Hammad's actual CV**, so a 404 there is worse than a broken page:
+
+```bash
+curl -sL https://star-mech.github.io/Hammad-Maqsood-CV.pdf | head -c 5   # expect %PDF-
+```
 
 Spot-check that the deploy carried your change, e.g.:
 
